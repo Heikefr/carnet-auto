@@ -137,6 +137,7 @@ table.t td.n,table.t th.n{text-align:right;padding-right:0;white-space:nowrap}
 .ech-edit .h{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
 
 /* Boutons */
+label.btn{display:inline-block}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:600}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .btn.danger{color:var(--bad);border-color:var(--bad)}
@@ -206,7 +207,7 @@ nav.tabs button[aria-current="page"]{color:var(--accent)}
     <div class="card" id="welcome" hidden>
       <h2 style="margin-bottom:6px">Bienvenue dans ton carnet</h2>
       <p class="note" style="margin:0 0 12px">Tes données restent sur ce téléphone. Restaure une sauvegarde pour retrouver ton historique, ou commence par la fiche de ton véhicule.</p>
-      <div class="btns"><button class="btn primary" id="w-import">Restaurer une sauvegarde</button><button class="btn" id="w-start">Remplir la fiche véhicule</button></div>
+      <div class="btns"><label class="btn primary" for="imp-file" role="button" tabindex="0" style="cursor:pointer">Restaurer une sauvegarde</label><button class="btn" id="w-start">Remplir la fiche véhicule</button></div>
     </div>
     <div class="banner" id="backup-nudge" hidden></div>
     <div class="kpis" id="kpis"></div>
@@ -278,8 +279,8 @@ nav.tabs button[aria-current="page"]{color:var(--accent)}
     <div class="card">
       <div class="card-h"><h2>Sauvegarde</h2><span class="note" id="last-backup"></span></div>
       <p class="note" style="margin:0 0 10px">Tes données sont enregistrées uniquement sur ce téléphone. Sauvegarde-les régulièrement dans Fichiers ou iCloud Drive : le fichier sert à les restaurer sur un autre appareil, ou à les envoyer à Claude pour qu'il les modifie.</p>
-      <div class="btns"><button class="btn primary" id="exp-json">Sauvegarder (.json)</button><button class="btn" id="imp-json">Restaurer une sauvegarde</button></div>
-      <input type="file" id="imp-file" accept="application/json,.json" hidden>
+      <div class="btns"><button class="btn primary" id="exp-json">Sauvegarder (.json)</button><label class="btn" for="imp-file" role="button" tabindex="0" style="cursor:pointer">Restaurer une sauvegarde</label></div>
+      <input type="file" id="imp-file" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true">
       <div id="imp-msg" style="display:flex;flex-direction:column;gap:8px;margin-top:10px"></div>
       <p class="note" style="margin:14px 0 8px">Pour Excel ou Google Sheets :</p>
       <div class="btns"><button class="btn" id="exp-fuel">Pleins (.csv)</button><button class="btn" id="exp-maint">Entretiens (.csv)</button></div>
@@ -712,18 +713,27 @@ async function backupNow(){
 $("#exp-json").addEventListener("click",backupNow);
 document.addEventListener("click",e=>{if(e.target.id==="nudge-go")backupNow();});
 const pickFile=()=>$("#imp-file").click();
-$("#imp-json").addEventListener("click",pickFile);
-$("#w-import").addEventListener("click",()=>{go("car");pickFile();});
+
 $("#w-start").addEventListener("click",()=>{go("car");if(S.editing!=="veh")toggleEdit("veh");});
 $("#imp-file").addEventListener("change",async e=>{
-  const f=e.target.files&&e.target.files[0];e.target.value="";if(!f)return;const box=$("#imp-msg");
-  let d;try{d=JSON.parse(await f.text());}catch(err){box.innerHTML='<div class="msg e">Ce fichier n\'est pas une sauvegarde lisible. Choisis un fichier .json créé par le bouton « Sauvegarder ».</div>';return;}
-  if(!d||d.app!=="carnet-auto"){box.innerHTML='<div class="msg e">Ce fichier ne vient pas de cette application. Choisis un fichier « sauvegarde-carnet… .json ».</div>';return;}
-  const n=k=>Array.isArray(d[k])?d[k].length:0;const has=S.pleins.length||S.entretiens.length;
-  box.innerHTML=`<div class="msg i">Sauvegarde du ${esc(fd((d.exporte||"").slice(0,10)))} : ${n("pleins")} pleins, ${n("entretiens")} entretiens, ${n("pieces")} pièces${d.vehicule&&d.vehicule.modele?" · "+esc((d.vehicule.marque||"")+" "+d.vehicule.modele):""}.${has?" Elle remplacera les données actuelles de ce téléphone.":""}</div><div class="btns"><button class="btn" id="imp-cancel">Annuler</button><button class="btn primary" id="imp-ok">${has?"Remplacer mes données":"Restaurer"}</button></div>`;
-  $("#imp-cancel").onclick=()=>box.innerHTML="";
-  $("#imp-ok").onclick=()=>{const prev=snapshot();applyData(d);if(persist()){box.innerHTML="";renderAll();go("home");toast("Données restaurées");}else{applyData(prev);renderAll();}};
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  let txt="";try{txt=await f.text();}catch(err){try{txt=await new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=ko;r.readAsText(f);});}catch(err2){}}
+  e.target.value="";
+  importText(txt,f.name);
 });
+function importText(txt,name){
+  let d=null;try{d=JSON.parse(String(txt||"").replace(/^﻿/,"").trim());}catch(err){}
+  if(!d||d.app!=="carnet-auto"){
+    sheet(`<h2>Fichier non reconnu</h2><p class="note" style="margin:0 0 6px">« ${esc(name||"fichier")} » n'est pas une sauvegarde de cette application.</p><p class="note" style="margin:0">Choisis le fichier dont le nom commence par <b>sauvegarde-carnet</b> et finit par <b>.json</b>.</p><div class="btns"><span></span><button class="btn primary" data-close type="button">OK</button></div>`);return;}
+  const n=k=>Array.isArray(d[k])?d[k].length:0;const has=S.pleins.length||S.entretiens.length;
+  sheet(`<h2>Restaurer la sauvegarde ?</h2>
+    <div class="msg i" style="margin-bottom:8px">Sauvegarde du ${esc(fd((d.exporte||"").slice(0,10)))}${d.vehicule&&d.vehicule.modele?" · "+esc((d.vehicule.marque||"")+" "+d.vehicule.modele):""}</div>
+    <p style="margin:0">${n("pleins")} pleins · ${n("entretiens")} entretiens · ${n("pieces")} pièces</p>
+    ${has?'<p class="note" style="margin:8px 0 0">Elle remplacera les données actuelles de ce téléphone.</p>':""}
+    <div class="btns"><button class="btn" data-close type="button">Annuler</button><button class="btn primary" id="imp-ok" type="button">${has?"Remplacer mes données":"Restaurer"}</button></div>`,()=>{
+    $("#imp-ok").addEventListener("click",()=>{const prev=snapshot();applyData(d);if(persist()){closeSheet();renderAll();go("home");toast("Données restaurées");}else{applyData(prev);renderAll();}});
+  });
+}
 $("#exp-fuel").addEventListener("click",()=>{
   const rows=[["Date","Kilométrage","Plein complet","Station","Carburant 1","Litres 1","Montant 1","Carburant 2","Litres 2","Montant 2","Total litres","Total €"]];
   pleinsByKm().forEach(p=>{const c=p.carburants||[];const t=pleinTot(p);rows.push([(p.date||"").replace("T"," "),p.km,p.plein?"Oui":"Non",p.station,c[0]?.type,dec(c[0]?.litres),dec(c[0]?.montant),c[1]?.type||"",dec(c[1]?.litres),dec(c[1]?.montant),dec(Math.round(t.l*100)/100),dec(Math.round(t.e*100)/100)]);});
