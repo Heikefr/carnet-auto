@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Carnet auto</title>
+<meta name="theme-color" content="#eef1f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1418" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Carnet">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: application mobile à onglets — en-tête compteur, cartes d'état, barre d'onglets fixe en bas, feuilles de saisie qui montent du bas */
+:root{
+  --bg:#eef1f3; --surface:#ffffff; --surface-2:#f5f7f8; --line:#d9dfe3; --ink:#15212a; --muted:#5b6b76;
+  --accent:#1d5d78; --accent-ink:#ffffff; --accent-soft:#dcebf1;
+  --ok:#2e7d4f; --ok-soft:#dff1e6; --warn:#a8640a; --warn-soft:#fbecd3; --bad:#b3362c; --bad-soft:#f8dedb; --na:#6d7a83; --na-soft:#e7ebee;
+  --c-fuel:#1d5d78; --c-maint:#c27a1a; --c-ins:#8ea4b1;
+  --odo-bg:#15212a; --odo-ink:#f3f6f8;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --r:14px; --nav-h:62px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1418; --surface:#162027; --surface-2:#1c2830; --line:#2a3842; --ink:#e6edf1; --muted:#93a3ad;
+  --accent:#5fb0d0; --accent-ink:#06222e; --accent-soft:#183644;
+  --ok:#5cc58a; --ok-soft:#173526; --warn:#e8a64a; --warn-soft:#3a2a12; --bad:#ef7a6f; --bad-soft:#3d1c19; --na:#93a3ad; --na-soft:#24313a;
+  --c-fuel:#5fb0d0; --c-maint:#e8a64a; --c-ins:#5d7482; --odo-bg:#05090c; --odo-ink:#f3f6f8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1418; --surface:#162027; --surface-2:#1c2830; --line:#2a3842; --ink:#e6edf1; --muted:#93a3ad;
+  --accent:#5fb0d0; --accent-ink:#06222e; --accent-soft:#183644;
+  --ok:#5cc58a; --ok-soft:#173526; --warn:#e8a64a; --warn-soft:#3a2a12; --bad:#ef7a6f; --bad-soft:#3d1c19; --na:#93a3ad; --na-soft:#24313a;
+  --c-fuel:#5fb0d0; --c-maint:#e8a64a; --c-ins:#5d7482; --odo-bg:#05090c; --odo-ink:#f3f6f8; color-scheme:dark}
+html{-webkit-text-size-adjust:100%;color-scheme:light}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:env(safe-area-inset-top,0px) calc(var(--nav-h) + 24px + env(safe-area-inset-bottom,0px));margin:0;-webkit-tap-highlight-color:transparent}
+img{max-width:100%}
+input,select,textarea{font-size:16px}
+.wrap{max-width:760px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:.01em}
+h2{font-size:1.35rem;font-weight:700}
+h3{font-size:1.05rem;font-weight:600}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--f-mono)}
+.muted{color:var(--muted)}
+.eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* En-tête */
+header.top{padding-block:18px 6px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.car h1{font-size:1.9rem;font-weight:700;line-height:1}
+.car .sub{color:var(--muted);font-size:.9rem;margin-top:4px}
+.plate{display:inline-flex;align-items:stretch;border:1.5px solid var(--ink);border-radius:5px;overflow:hidden;font-family:var(--f-mono);font-weight:600;font-size:.82rem;background:var(--surface)}
+.plate i{background:#1f3f9a;color:#fff;font-style:normal;padding:2px 4px;font-size:.62rem;display:flex;align-items:center}
+.plate span{padding:2px 7px}
+.odo{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.odo-digits{display:flex;gap:2px}
+.odo-digits b{background:var(--odo-bg);color:var(--odo-ink);font-family:var(--f-mono);font-weight:600;font-size:1.25rem;width:1.45rem;text-align:center;border-radius:3px;padding:3px 0}
+.odo-digits b.u{background:transparent;color:var(--muted);width:auto;font-size:.85rem;padding-left:4px;align-self:flex-end}
+
+/* Sections */
+section.view{display:flex;flex-direction:column;gap:16px;padding-top:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.card-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:640px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;min-width:0}
+.kpi .v{font-family:var(--f-display);font-size:1.7rem;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:.9rem;font-weight:600;color:var(--muted);margin-left:2px}
+.kpi .d{font-size:.8rem;color:var(--muted)}
+
+/* Échéances */
+.due{display:flex;flex-direction:column}
+.due-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:11px 0;border-top:1px solid var(--line);align-items:center}
+.due-row:first-child{border-top:0;padding-top:2px}
+.due-name{font-weight:600;min-width:0}
+.due-meta{grid-column:1/-1;font-size:.82rem;color:var(--muted);display:flex;gap:4px 12px;flex-wrap:wrap}
+.bar{grid-column:1/-1;height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.bar span{display:block;height:100%;border-radius:3px}
+.pill{font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.s-bad{color:var(--bad);background:var(--bad-soft)} .b-bad{background:var(--bad)}
+.s-warn{color:var(--warn);background:var(--warn-soft)} .b-warn{background:var(--warn)}
+.s-ok{color:var(--ok);background:var(--ok-soft)} .b-ok{background:var(--ok)}
+.s-na{color:var(--na);background:var(--na-soft)} .b-na{background:var(--na)}
+
+/* Listes */
+.list{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:11px 4px;border-top:1px solid var(--line);background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;width:100%;border-radius:0}
+.row:hover{background:var(--surface-2)}
+.row:first-child{border-top:0}
+.row .t{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .r{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.row .s{font-size:.82rem;color:var(--muted);display:flex;gap:4px 10px;flex-wrap:wrap;min-width:0}
+.row .s2{font-size:.82rem;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.month-h{display:flex;justify-content:space-between;padding:14px 4px 4px;font-family:var(--f-display);font-weight:600;font-size:1rem}
+.month-h span:last-child{font-variant-numeric:tabular-nums;color:var(--muted)}
+.chip{font-size:.7rem;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink)}
+.chip.e85{border-color:var(--ok);color:var(--ok)}
+.chip.sp98{border-color:var(--accent);color:var(--accent)}
+.chip.full{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
+
+/* Graphique */
+.chart{width:100%;overflow-x:auto}
+.chart svg{display:block;width:100%;height:auto}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.split{display:flex;height:12px;border-radius:6px;overflow:hidden;margin:8px 0 10px;background:var(--surface-2)}
+.split span{display:block;height:100%}
+table.t{width:100%;border-collapse:collapse;font-size:.9rem}
+table.t th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;text-align:left;padding:6px 6px 6px 0;border-bottom:1px solid var(--line)}
+table.t td{padding:8px 6px 8px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+table.t td.n,table.t th.n{text-align:right;padding-right:0;white-space:nowrap}
+.kv label.wide{grid-column:1/-1}
+.tw{overflow-x:auto}
+
+/* Fiche */
+.kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+@media (min-width:640px){.kv{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.kv label{display:flex;flex-direction:column;gap:3px;min-width:0}
+.kv input{width:100%;min-width:0;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:7px 9px;font-weight:600;font-size:16px}
+.kv input:disabled{border-color:transparent;background:transparent;padding-left:0;color:var(--ink);-webkit-text-fill-color:var(--ink);opacity:1}
+.ech-edit{display:grid;grid-template-columns:minmax(0,1fr) 74px 92px;gap:6px 8px;align-items:center;font-size:.9rem}
+.ech-edit input{width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:6px 8px;text-align:right}
+.ech-edit .h{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+
+/* Boutons */
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:600}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.danger.armed{background:var(--bad);color:#fff}
+.btn:disabled{opacity:.5;cursor:default}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.fab{position:fixed;right:calc(max(16px,env(safe-area-inset-right,0px)) + 2px);bottom:calc(var(--nav-h) + 14px + env(safe-area-inset-bottom,0px));z-index:20;display:flex;gap:8px}
+.fab button{border:0;border-radius:999px;padding:13px 18px;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.22);background:var(--accent);color:var(--accent-ink);font-family:var(--f-display);font-size:1.05rem;letter-spacing:.02em}
+.fab button.alt{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+
+/* Navigation */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:15;background:var(--surface);border-top:1px solid var(--line);
+  padding:0 max(8px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(8px,env(safe-area-inset-left,0px))}
+nav.tabs .in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);height:var(--nav-h)}
+nav.tabs button{border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--muted);font-size:.75rem;font-weight:600}
+nav.tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button[aria-current="page"]{color:var(--accent)}
+
+/* Feuille de saisie */
+.sheet-bg{position:fixed;inset:0;background:rgba(8,14,18,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:92%;overflow-y:auto;border-radius:18px 18px 0 0;
+  padding:18px max(18px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px))}
+@media (min-width:600px){.sheet-bg{align-items:center}.sheet{border-radius:18px}}
+.sheet h2{margin-bottom:12px}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f.full{grid-column:1/-1}
+.f>span{font-size:.8rem;font-weight:600;color:var(--muted)}
+.f input,.f select{width:100%;min-width:0;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 11px;font-size:16px}
+.f input.err{border-color:var(--bad)}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{flex:1;border:0;background:var(--surface-2);padding:10px 6px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.fuel-block{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px;border-radius:12px;background:var(--surface-2)}
+.fuel-block .f input,.fuel-block .f select{background:var(--surface)}
+.fuel-block .bh{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;font-size:.8rem;font-weight:700;color:var(--muted)}
+.link{background:none;border:0;color:var(--accent);font-weight:600;padding:4px 0}
+.msg{grid-column:1/-1;font-size:.88rem;border-radius:10px;padding:9px 11px}
+.msg.e{background:var(--bad-soft);color:var(--bad)}
+.msg.w{background:var(--warn-soft);color:var(--warn)}
+.msg.i{background:var(--accent-soft);color:var(--accent)}
+.live{grid-column:1/-1;display:flex;gap:16px;flex-wrap:wrap;font-size:.88rem;color:var(--muted)}
+.live b{color:var(--ink);font-variant-numeric:tabular-nums}
+.sheet .btns{margin-top:16px;justify-content:space-between}
+
+.banner{border-radius:12px;padding:10px 12px;font-size:.9rem;background:var(--warn-soft);color:var(--warn)}
+.empty{padding:22px 8px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 80px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-weight:600;z-index:60;font-size:.9rem}
+.note{font-size:.84rem;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="car">
+      <div class="eyebrow" id="h-brand">Carnet de bord</div>
+      <h1 id="h-model">Ma voiture</h1>
+      <div class="sub"><span class="plate"><i>F</i><span id="h-plate">—</span></span> <span id="h-age"></span></div>
+    </div>
+    <div class="odo"><div class="eyebrow">Compteur</div><div class="odo-digits" id="odo"></div></div>
+  </header>
+  <div id="banner" class="banner" hidden></div>
+
+  <!-- ACCUEIL -->
+  <section class="view" id="v-home">
+    <div class="card" id="welcome" hidden>
+      <h2 style="margin-bottom:6px">Bienvenue dans ton carnet</h2>
+      <p class="note" style="margin:0 0 12px">Tes données restent sur ce téléphone. Restaure une sauvegarde pour retrouver ton historique, ou commence par la fiche de ton véhicule.</p>
+      <div class="btns"><button class="btn primary" id="w-import">Restaurer une sauvegarde</button><button class="btn" id="w-start">Remplir la fiche véhicule</button></div>
+    </div>
+    <div class="banner" id="backup-nudge" hidden></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="card">
+      <div class="card-h"><h2>Échéances</h2><span class="note" id="due-sum"></span></div>
+      <div class="due" id="due-home"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Dépenses par mois</h2><span class="note">carburant + entretien</span></div>
+      <div class="chart" id="chart-month"></div>
+      <div class="legend"><span><i style="background:var(--c-fuel)"></i>Carburant</span><span><i style="background:var(--c-maint)"></i>Entretien</span></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Coût total de détention</h2><span class="note" id="tco-period"></span></div>
+      <div class="split" id="tco-split"></div>
+      <div class="tw"><table class="t" id="tco-table"></table></div>
+    </div>
+  </section>
+
+  <!-- CARBURANT -->
+  <section class="view" id="v-fuel" hidden>
+    <div class="kpis" id="kpis-fuel"></div>
+    <div class="card">
+      <div class="card-h"><h2>Par carburant</h2><span class="note">prix moyen pondéré</span></div>
+      <div class="tw"><table class="t" id="fuel-types"></table></div>
+      <p class="note" style="margin:10px 0 0">La conso est calculée sur l'ensemble des litres et des kilomètres. Comme la plupart de tes pleins sont partiels, une conso plein par plein ne serait pas fiable.</p>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Historique des pleins</h2><span class="note">touche une ligne pour la modifier</span></div>
+      <div class="list" id="fuel-list"></div>
+    </div>
+  </section>
+
+  <!-- ENTRETIEN -->
+  <section class="view" id="v-maint" hidden>
+    <div class="card">
+      <div class="card-h"><h2>Échéances</h2><span class="note" id="due-sum2"></span></div>
+      <div class="due" id="due-full"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Historique</h2><span class="note" id="maint-total"></span></div>
+      <div class="list" id="maint-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Pièces de rechange</h2><button class="link" id="add-piece">+ Ajouter</button></div>
+      <div id="pieces"></div>
+    </div>
+  </section>
+
+  <!-- VÉHICULE -->
+  <section class="view" id="v-car" hidden>
+    <div class="card">
+      <div class="card-h"><h2>Fiche véhicule</h2><button class="link" data-edit="veh">Modifier</button></div>
+      <div class="kv" id="kv-veh"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Pneus</h2></div>
+      <div class="tw"><table class="t" id="tyres"></table></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Assurance</h2><button class="link" data-edit="ins">Modifier</button></div>
+      <div class="kv" id="kv-ins"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Intervalles d'entretien</h2><button class="link" id="save-ech">Enregistrer</button></div>
+      <div class="ech-edit" id="ech-edit"></div>
+      <p class="note" style="margin:10px 0 0">Laisse « km » vide pour une échéance uniquement en date (contrôle technique). Alerte « À prévoir » : <input id="seuil-km" class="mono" style="width:70px;border:1px solid var(--line);background:var(--surface-2);border-radius:6px;padding:2px 6px;text-align:right"> km ou <input id="seuil-j" class="mono" style="width:50px;border:1px solid var(--line);background:var(--surface-2);border-radius:6px;padding:2px 6px;text-align:right"> jours avant.</p>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Sauvegarde</h2><span class="note" id="last-backup"></span></div>
+      <p class="note" style="margin:0 0 10px">Tes données sont enregistrées uniquement sur ce téléphone. Sauvegarde-les régulièrement dans Fichiers ou iCloud Drive : le fichier sert à les restaurer sur un autre appareil, ou à les envoyer à Claude pour qu'il les modifie.</p>
+      <div class="btns"><button class="btn primary" id="exp-json">Sauvegarder (.json)</button><button class="btn" id="imp-json">Restaurer une sauvegarde</button></div>
+      <input type="file" id="imp-file" accept="application/json,.json" hidden>
+      <div id="imp-msg" style="display:flex;flex-direction:column;gap:8px;margin-top:10px"></div>
+      <p class="note" style="margin:14px 0 8px">Pour Excel ou Google Sheets :</p>
+      <div class="btns"><button class="btn" id="exp-fuel">Pleins (.csv)</button><button class="btn" id="exp-maint">Entretiens (.csv)</button></div>
+    </div>
+  </section>
+</div>
+
+<div class="fab" id="fab"><button class="alt" id="fab-maint">+ Entretien</button><button id="fab-fuel">+ Plein</button></div>
+
+<nav class="tabs" aria-label="Sections">
+  <div class="in">
+    <button data-tab="home" aria-current="page"><svg viewBox="0 0 24 24"><path d="M4 15a8 8 0 1 1 16 0"/><path d="M12 15l4-5"/><circle cx="12" cy="15" r="1.2"/></svg>Accueil</button>
+    <button data-tab="fuel"><svg viewBox="0 0 24 24"><path d="M4 20V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15"/><path d="M3 20h12"/><path d="M6 8h6"/><path d="M14 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/></svg>Carburant</button>
+    <button data-tab="maint"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L4 16.8 7.2 20l5.3-5.3a4 4 0 0 0 5.2-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>Entretien</button>
+    <button data-tab="car"><svg viewBox="0 0 24 24"><path d="M5 16V12l2-5h10l2 5v4"/><path d="M3 16h18v2H3z"/><circle cx="7.5" cy="16" r="1.5"/><circle cx="16.5" cy="16" r="1.5"/><path d="M5 12h14"/></svg>Véhicule</button>
+  </div>
+</nav>
+
+<div id="sheet-root"></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+(function(){
+"use strict";
+const FUELS=["SP95 E10","SP98","E85","SP95","Gazole"];
+const DEFAULT_ECH={seuilKm:2000,seuilJours:30,items:[{nom:"Vidange Moteur",mois:12,km:25000},{nom:"Liquide de frein",mois:24,km:30000},{nom:"Liquide de refroidissement",mois:60,km:90000},{nom:"Filtre d'habitacle",mois:12,km:25000},{nom:"Bougies d'allumage",mois:72,km:90000},{nom:"Filtre à air moteur",mois:48,km:48000},{nom:"Disque de frein avant",mois:60,km:90000},{nom:"Pneu avant",mois:48,km:50000},{nom:"Pneu arrière",mois:48,km:25000},{nom:"Contrôle technique",mois:24,km:null}]};
+const S={veh:{},ech:JSON.parse(JSON.stringify(DEFAULT_ECH)),pleins:[],entretiens:[],pieces:[],loaded:{veh:true,ech:true,pleins:true,entretiens:true,pieces:true},editing:null};
+const KEY="carnet-auto-v1",KEY_BK="carnet-auto-derniere-sauvegarde";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num=v=>{if(v===null||v===undefined||v==="")return NaN;if(typeof v==="number")return v;return parseFloat(String(v).replace(/\s/g,"").replace(",","."));};
+const fmt=(n,d=0)=>isFinite(n)?n.toLocaleString("fr-FR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const eur=(n,d=2)=>isFinite(n)?fmt(n,d)+" €":"—";
+const km=n=>isFinite(n)?fmt(n,0)+" km":"—";
+const D=s=>s?new Date(s.length<=10?s+"T12:00:00":s):null;
+const fd=(s,o)=>{const d=D(s);return d&&!isNaN(d)?d.toLocaleDateString("fr-FR",o||{day:"2-digit",month:"2-digit",year:"numeric"}):"—";};
+const addMonths=(d,m)=>{const x=new Date(d);const day=x.getDate();x.setMonth(x.getMonth()+m);if(x.getDate()<day)x.setDate(0);return x;};
+const norm=s=>String(s||"").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const today=()=>new Date();
+const MONTHS=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+
+/* ---------- Calculs ---------- */
+function pleinsByKm(){return S.pleins.slice().sort((a,b)=>num(a.km)-num(b.km));}
+function pleinTot(p){let l=0,e=0;(p.carburants||[]).forEach(c=>{l+=num(c.litres)||0;e+=num(c.montant)||0;});return{l,e};}
+function curKm(){let m=num(S.veh.kmManuel)||0;S.pleins.forEach(p=>m=Math.max(m,num(p.km)||0));S.entretiens.forEach(e=>m=Math.max(m,num(e.km)||0));return m;}
+function fuelStats(){
+  const ps=pleinsByKm();if(ps.length<2)return null;
+  const first=ps[0],last=ps[ps.length-1];const dist=num(last.km)-num(first.km);
+  let L=0,E=0,Eall=0,Lall=0;ps.forEach((p,i)=>{const t=pleinTot(p);Eall+=t.e;Lall+=t.l;if(i>0){L+=t.l;E+=t.e;}});
+  const d0=D(first.date),d1=today();const days=Math.max(1,(d1-d0)/864e5);
+  return{dist,conso:L/dist*100,eurKm:E/dist,Eall,Lall,first,last,days,kmMonth:dist/days*30.44,n:ps.length};
+}
+function echStatus(){
+  const ck=curKm(),now=today(),sk=num(S.ech.seuilKm)||2000,sj=num(S.ech.seuilJours)||30;
+  return (S.ech.items||[]).map(it=>{
+    const hits=S.entretiens.filter(e=>norm(e.type)===norm(it.nom));
+    let last=null;hits.forEach(h=>{if(!last||D(h.date)>D(last.date)||(+D(h.date)===+D(last.date)&&num(h.km)>num(last.km)))last=h;});
+    const r={...it,last,status:"na",prog:0,nextDate:null,nextKm:null};
+    if(!last)return r;
+    const ld=D(last.date),lk=num(last.km);
+    if(num(it.mois)>0)r.nextDate=addMonths(ld,num(it.mois));
+    if(num(it.km)>0&&isFinite(lk))r.nextKm=lk+num(it.km);
+    let p=0;
+    if(r.nextDate)p=Math.max(p,(now-ld)/(r.nextDate-ld));
+    if(r.nextKm)p=Math.max(p,(ck-lk)/num(it.km));
+    r.prog=Math.max(0,p);
+    const overKm=r.nextKm&&ck>=r.nextKm, overD=r.nextDate&&now>=r.nextDate;
+    const soonKm=r.nextKm&&ck>=r.nextKm-sk, soonD=r.nextDate&&now>=new Date(r.nextDate-sj*864e5);
+    r.status=(overKm||overD)?"bad":(soonKm||soonD)?"warn":"ok";
+    r.why=overKm&&!overD?"km":overD&&!overKm?"date":"";
+    r.kmLeft=r.nextKm?r.nextKm-ck:null;r.daysLeft=r.nextDate?Math.round((r.nextDate-now)/864e5):null;
+    return r;
+  });
+}
+const ST={bad:["Dépassé","s-bad","b-bad"],warn:["À prévoir","s-warn","b-warn"],ok:["OK","s-ok","b-ok"],na:["À renseigner","s-na","b-na"]};
+const ORDER={bad:0,warn:1,na:2,ok:3};
+function monthly(){
+  const m={};
+  const k=d=>{const x=D(d);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0");};
+  S.pleins.forEach(p=>{if(!p.date)return;const key=k(p.date);(m[key]=m[key]||{f:0,m:0}).f+=pleinTot(p).e;});
+  S.entretiens.forEach(e=>{if(!e.date||!(num(e.montant)>0))return;const key=k(e.date);(m[key]=m[key]||{f:0,m:0}).m+=num(e.montant);});
+  return m;
+}
+function tco(){
+  const fs=fuelStats();if(!fs)return null;
+  const start=D(fs.first.date);const days=Math.max(1,(today()-start)/864e5);
+  const fuel=fs.Eall;
+  const maint=S.entretiens.filter(e=>D(e.date)>=new Date(start.getFullYear(),start.getMonth(),start.getDate())).reduce((s,e)=>s+(num(e.montant)||0),0);
+  const ins=(num(S.veh.cotisation)||0)/365.25*days;
+  const total=fuel+maint+ins;const kmd=curKm()-num(fs.first.km);
+  return{start,days,fuel,maint,ins,total,kmd,perKm:total/kmd,perMonth:total/days*30.44};
+}
+
+/* ---------- Rendu ---------- */
+function renderHeader(){
+  const v=S.veh;
+  $("#h-brand").textContent=v.marque||"Carnet de bord";
+  $("#h-model").textContent=v.modele||"Ma voiture";
+  $("#h-plate").textContent=v.immat||"—";
+  const pi=D(v.premiereImmat);
+  if(pi){const y=(today()-pi)/(365.25*864e5);$("#h-age").textContent="· "+fmt(Math.floor(y))+" ans · "+(v.carburant||"");}
+  const ck=curKm();const s=String(Math.round(ck)).padStart(6,"0");
+  $("#odo").innerHTML=s.split("").map(c=>"<b>"+c+"</b>").join("")+'<b class="u">km</b>';
+}
+function dueRows(list,compact){
+  if(!S.loaded.ech||!S.loaded.entretiens)return '<div class="empty">Chargement…</div>';
+  if(!list.length)return '<div class="empty">Aucune échéance définie. Ajoute des intervalles dans l\'onglet Véhicule.</div>';
+  return list.map(r=>{
+    const st=ST[r.status];const pct=Math.min(100,Math.round(r.prog*100));
+    let meta=[];
+    if(r.status==="na")meta.push("Aucune intervention enregistrée");
+    else{
+      meta.push("Fait le "+fd(r.last.date)+(isFinite(num(r.last.km))?" à "+km(num(r.last.km)):""));
+      const parts=[];
+      if(r.nextKm)parts.push(r.kmLeft>=0?"dans "+km(r.kmLeft):"dépassé de "+km(-r.kmLeft));
+      if(r.nextDate)parts.push(r.daysLeft>=0?(r.daysLeft>60?"avant "+fd(r.nextDate.toISOString().slice(0,10),{month:"short",year:"numeric"}):"dans "+r.daysLeft+" j"):"depuis le "+fd(r.nextDate.toISOString().slice(0,10)));
+      meta.push(parts.join(" · "));
+    }
+    return `<div class="due-row"><div class="due-name">${esc(r.nom)}</div><span class="pill ${st[1]}">${st[0]}</span>
+      ${r.status!=="na"?`<div class="bar"><span class="${st[2]}" style="width:${Math.max(3,pct)}%"></span></div>`:""}
+      <div class="due-meta">${meta.map(m=>"<span>"+esc(m)+"</span>").join("")}</div></div>`;
+  }).join("");
+}
+function renderHome(){
+  const fs=fuelStats(),t=tco();
+  const k=[];
+  if(t){
+    k.push(["Coût réel / mois",fmt(t.perMonth,0),"€","carburant, entretien, assurance"]);
+    k.push(["Coût au km",fmt(t.perKm,2),"€/km","tout compris"]);
+  }
+  if(fs){
+    k.push(["Conso moyenne",fmt(fs.conso,1),"L/100","sur "+km(fs.dist)]);
+    k.push(["Rythme",fmt(fs.kmMonth,0),"km/mois","depuis le "+fd(fs.first.date)]);
+  }
+  $("#kpis").innerHTML=k.length?k.map(x=>`<div class="kpi"><div class="eyebrow">${x[0]}</div><div class="v">${x[1]}<small>${x[2]}</small></div><div class="d">${esc(x[3])}</div></div>`).join(""):'<div class="kpi" style="grid-column:1/-1"><div class="d">Les chiffres apparaîtront dès que deux pleins seront enregistrés. Touche « + Plein » pour commencer.</div></div>';
+  const st=echStatus().sort((a,b)=>ORDER[a.status]-ORDER[b.status]||(b.prog-a.prog));
+  const urgent=st.filter(r=>r.status==="bad"||r.status==="warn");
+  const shown=urgent.length?urgent.concat(st.filter(r=>r.status==="ok").slice(0,Math.max(0,3-urgent.length))):st.slice(0,3);
+  $("#due-home").innerHTML=dueRows(shown,true)+(st.length>shown.length?`<button class="link" data-tab="maint" style="margin-top:8px;text-align:left">Voir les ${st.length} échéances</button>`:"");
+  const nb=st.filter(r=>r.status==="bad").length,nw=st.filter(r=>r.status==="warn").length;
+  $("#due-sum").textContent=nb||nw?[nb?nb+" dépassée"+(nb>1?"s":""):"",nw?nw+" à prévoir":""].filter(Boolean).join(" · "):"tout est à jour";
+  renderChart();
+  if(t){
+    $("#tco-period").textContent="depuis le "+fd(t.start.toISOString().slice(0,10))+" · "+km(t.kmd);
+    const parts=[["Carburant",t.fuel,"var(--c-fuel)"],["Entretien",t.maint,"var(--c-maint)"],["Assurance",t.ins,"var(--c-ins)"]];
+    $("#tco-split").innerHTML=parts.map(p=>`<span style="width:${(p[1]/t.total*100).toFixed(2)}%;background:${p[2]}" title="${p[0]}"></span>`).join("");
+    $("#tco-table").innerHTML=`<tr><th>Poste</th><th class="n">Montant</th><th class="n">€/km</th></tr>`+
+      parts.map(p=>`<tr><td><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${p[2]};margin-right:6px"></i>${p[0]} <span class="muted">${fmt(p[1]/t.total*100,0)} %</span></td><td class="n">${eur(p[1],0)}</td><td class="n">${fmt(p[1]/t.kmd,3)}</td></tr>`).join("")+
+      `<tr><td><b>Total</b></td><td class="n"><b>${eur(t.total,0)}</b></td><td class="n"><b>${fmt(t.perKm,3)}</b></td></tr>`;
+  }else{$("#tco-table").innerHTML="";$("#tco-split").innerHTML="";$("#tco-period").textContent="";}
+}
+function renderChart(){
+  const m=monthly();const all=Object.keys(m).sort();
+  const el=$("#chart-month");
+  if(!all.length){el.innerHTML='<div class="empty">Pas encore de dépenses enregistrées.</div>';return;}
+  const fp=pleinsByKm()[0];const startK=fp&&fp.date?fp.date.slice(0,7):all[0];const keys=[];const n=new Date();let y0=n.getFullYear(),m0=n.getMonth();
+  for(let i=0;i<12;i++){const k=y0+"-"+String(m0+1).padStart(2,"0");if(k<startK)break;keys.unshift(k);m0--;if(m0<0){m0=11;y0--;}}
+  keys.forEach(k=>m[k]=m[k]||{f:0,m:0});
+  const W=Math.max(300,Math.round(el.clientWidth||600)),H=220,pl=34,pr=4,pt=18,pb=26;const iw=W-pl-pr,ih=H-pt-pb;
+  const max=Math.max(...keys.map(k=>m[k].f+m[k].m));
+  const step=max>800?250:max>400?100:max>150?50:25;const top=Math.ceil(max/step)*step||step;
+  const y=v=>pt+ih-(v/top)*ih;const bw=Math.min(36,iw/keys.length*0.62);
+  let g="";
+  for(let v=0;v<=top;v+=step){g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${pl-5}" y="${y(v)+4}" text-anchor="end" font-size="10" fill="var(--muted)" font-family="var(--f-mono)">${v}</text>`;}
+  keys.forEach((k,i)=>{
+    const cx=pl+iw/keys.length*(i+.5);const f=m[k].f,mm=m[k].m;
+    const yf=y(f),ym=y(f+mm);
+    g+=`<rect x="${cx-bw/2}" y="${yf}" width="${bw}" height="${y(0)-yf}" fill="var(--c-fuel)" rx="2"/>`;
+    if(mm>0)g+=`<rect x="${cx-bw/2}" y="${ym}" width="${bw}" height="${yf-ym}" fill="var(--c-maint)" rx="2"/>`;
+    if(f+mm>0)g+=`<text x="${cx}" y="${ym-5}" text-anchor="middle" font-size="${keys.length>8&&W<500?9:11}" font-weight="600" fill="var(--ink)" font-family="var(--f-mono)">${Math.round(f+mm)}</text>`;
+    const [yy,mo]=k.split("-");const lab=(W<500&&keys.length>8)?["J","F","M","A","M","J","J","A","S","O","N","D"][+mo-1]:MONTHS[+mo-1];g+=`<text x="${cx}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--muted)">${lab}${W>=500&&(mo==="01"||i===0)?" "+yy.slice(2):""}</text>`;
+  });
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Dépenses mensuelles en euros">${g}</svg>`;
+}
+function renderFuel(){
+  const fs=fuelStats();
+  const k=[];
+  if(fs){
+    k.push(["Conso moyenne",fmt(fs.conso,2),"L/100","total litres ÷ total km"]);
+    k.push(["Carburant au km",fmt(fs.eurKm,3),"€/km","sur "+km(fs.dist)]);
+    k.push(["Dépensé",fmt(fs.Eall,0),"€",fs.n+" pleins · "+fmt(fs.Lall,0)+" L"]);
+    const thisM=new Date();const key=thisM.getFullYear()+"-"+String(thisM.getMonth()+1).padStart(2,"0");const mm=monthly()[key];
+    k.push(["Ce mois-ci",fmt(mm?mm.f:0,0),"€",MONTHS[thisM.getMonth()]+" "+thisM.getFullYear()]);
+  }
+  $("#kpis-fuel").innerHTML=k.map(x=>`<div class="kpi"><div class="eyebrow">${x[0]}</div><div class="v">${x[1]}<small>${x[2]}</small></div><div class="d">${esc(x[3])}</div></div>`).join("");
+  const by={};S.pleins.forEach(p=>(p.carburants||[]).forEach(c=>{const t=c.type||"?";const o=by[t]=by[t]||{l:0,e:0,n:0};o.l+=num(c.litres)||0;o.e+=num(c.montant)||0;o.n++;}));
+  const types=Object.keys(by).sort((a,b)=>by[b].l-by[a].l);
+  $("#fuel-types").innerHTML=types.length?`<tr><th>Carburant</th><th class="n">Litres</th><th class="n">Dépensé</th><th class="n">Prix moyen</th></tr>`+types.map(t=>`<tr><td><span class="chip ${chipCls(t)}">${esc(t)}</span></td><td class="n">${fmt(by[t].l,1)} L</td><td class="n">${eur(by[t].e,0)}</td><td class="n"><b>${fmt(by[t].e/by[t].l,3)} €/L</b></td></tr>`).join(""):"";
+  const ps=pleinsByKm().reverse();
+  if(!S.loaded.pleins){$("#fuel-list").innerHTML='<div class="empty">Chargement des pleins…</div>';return;}
+  if(!ps.length){$("#fuel-list").innerHTML='<div class="empty">Aucun plein pour l\'instant. Touche « + Plein » pour enregistrer le premier.</div>';return;}
+  const asc=pleinsByKm();const prevKm={};asc.forEach((p,i)=>prevKm[p._id]=i>0?num(asc[i-1].km):null);
+  let html="",cur="";const m=monthly();
+  ps.forEach(p=>{
+    const d=D(p.date);const key=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+    if(key!==cur){cur=key;html+=`<div class="month-h"><span>${MONTHS[d.getMonth()]} ${d.getFullYear()}</span><span>${eur((m[key]||{f:0}).f,0)}</span></div>`;}
+    const t=pleinTot(p);const dist=prevKm[p._id]!=null?num(p.km)-prevKm[p._id]:null;
+    html+=`<button class="row" data-plein="${esc(p._id)}"><div class="t">${esc(p.station||"Station")} ${(p.carburants||[]).map(c=>`<span class="chip ${chipCls(c.type)}">${esc(c.type)}</span>`).join(" ")} ${p.plein?'<span class="chip full">Plein</span>':""}</div><div class="r">${eur(t.e)}</div>
+      <div class="s"><span>${fd(p.date,{day:"2-digit",month:"short"})}</span><span>${km(num(p.km))}</span>${dist!=null?`<span>+${fmt(dist)} km</span>`:""}</div><div class="s2">${fmt(t.l,2)} L · ${fmt(t.e/t.l,3)} €/L</div></button>`;
+  });
+  $("#fuel-list").innerHTML=html;
+}
+function chipCls(t){const n=norm(t);return n==="e85"?"e85":n==="sp98"?"sp98":"";}
+function renderMaint(){
+  const st=echStatus().sort((a,b)=>ORDER[a.status]-ORDER[b.status]||(b.prog-a.prog));
+  $("#due-full").innerHTML=dueRows(st);
+  const nb=st.filter(r=>r.status==="bad").length,nw=st.filter(r=>r.status==="warn").length;
+  $("#due-sum2").textContent=nb||nw?[nb?nb+" dépassée"+(nb>1?"s":""):"",nw?nw+" à prévoir":""].filter(Boolean).join(" · "):"";
+  const es=S.entretiens.slice().sort((a,b)=>D(b.date)-D(a.date)||num(b.km)-num(a.km));
+  const tot=es.reduce((s,e)=>s+(num(e.montant)||0),0);
+  $("#maint-total").textContent=es.length?eur(tot,0)+" au total":"";
+  $("#maint-list").innerHTML=!S.loaded.entretiens?'<div class="empty">Chargement…</div>':es.length?es.map(e=>`<button class="row" data-ent="${esc(e._id)}"><div class="t">${esc(e.type)}</div><div class="r">${num(e.montant)>0?eur(num(e.montant)):'<span class="muted" style="font-weight:500">—</span>'}</div><div class="s" style="grid-column:1/-1"><span>${fd(e.date)}</span><span>${km(num(e.km))}</span>${e.note?`<span>${esc(e.note)}</span>`:""}</div></button>`).join(""):'<div class="empty">Aucun entretien enregistré. Touche « + Entretien » pour en ajouter un.</div>';
+  const groups={};S.pieces.forEach(p=>{(groups[p.categorie||"Divers"]=groups[p.categorie||"Divers"]||[]).push(p);});
+  const gk=Object.keys(groups);
+  $("#pieces").innerHTML=!gk.length?'<div class="empty">Aucune pièce enregistrée. Note ici les références pour les racheter facilement.</div>':gk.map(g=>{
+    const items=groups[g];const sum=items.reduce((s,p)=>s+(num(p.prix)||0),0);
+    return `<div class="month-h" style="padding-top:4px"><span>${esc(g)}</span><span>${eur(sum)}</span></div><div class="list">`+items.map(p=>`<button class="row" data-piece="${esc(p._id)}"><div class="t" style="white-space:normal">${esc(p.article)}</div><div class="r">${eur(num(p.prix))}</div><div class="s"><span>${esc(p.qte)}</span><span>${esc(p.marque)}</span><span class="mono">${esc(p.ref)}</span></div><div class="s2">${esc(p.magasin)}</div></button>`).join("")+"</div>";
+  }).join("");
+}
+const VEH_FIELDS=[["marque","Constructeur"],["modele","Modèle"],["immat","Immatriculation"],["premiereImmat","1re immatriculation","date"],["vin","Code VIN"],["cv","Chevaux fiscaux"],["carburant","Carburant"],["huile","Huile moteur"],["moteur","Réf. bloc moteur"],["pneus","Dimension pneus"],["poids","Poids"],["conducteur","Conducteur principal"],["permis","Permis obtenu"],["stationnement","Stationnement"],["usage","Usage"]];
+const INS_FIELDS=[["assureur","Assureur"],["formule","Formule"],["contrat","N° de contrat"],["cotisation","Cotisation annuelle (€)","num"],["dateEffet","Date d'effet","date"],["renouvellement","Renouvellement"],["prelevement","Prélèvement"],["banque","Banque de prélèvement"],["assistance","Tél. assistance"]];
+function kvHTML(fields,group){
+  const ed=S.editing===group;
+  return fields.map(f=>`<label class="${["vin","carburant","contrat"].includes(f[0])?"wide":""}"><span class="eyebrow">${f[1]}</span><input id="kv-${f[0]}" data-k="${f[0]}" ${f[2]==="date"?'type="date"':f[2]==="num"?'inputmode="decimal"':""} value="${esc(S.veh[f[0]]??"")}" ${ed?"":"disabled"} placeholder="${ed?"":"—"}"></label>`).join("");
+}
+function renderCar(){
+  $("#kv-veh").innerHTML=kvHTML(VEH_FIELDS,"veh");
+  $("#kv-ins").innerHTML=kvHTML(INS_FIELDS,"ins");
+  document.querySelectorAll("[data-edit]").forEach(b=>b.textContent=S.editing===b.dataset.edit?"Enregistrer":"Modifier");
+  const ck=curKm();
+  const tyre=pos=>{const hits=S.entretiens.filter(e=>norm(e.type)===norm("Pneu "+pos)).sort((a,b)=>D(b.date)-D(a.date));return hits[0];};
+  const rows=[["Avant",tyre("avant")],["Arrière",tyre("arriere")]];
+  $("#tyres").innerHTML=`<tr><th>Train</th><th>Monté le</th><th class="n">Parcouru</th></tr>`+rows.map(r=>`<tr><td><b>${r[0]}</b><div class="note">${esc(r[1]&&r[1].note||S.veh.pneus||"")}</div></td><td>${r[1]?fd(r[1].date):"—"}</td><td class="n">${r[1]?km(ck-num(r[1].km)):"—"}</td></tr>`).join("");
+  if(!document.activeElement||!document.activeElement.closest("#ech-edit")){
+    $("#ech-edit").innerHTML=`<span class="h">Intervention</span><span class="h" style="text-align:right">mois</span><span class="h" style="text-align:right">km</span>`+(S.ech.items||[]).map((it,i)=>`<span>${esc(it.nom)}</span><input id="em-${i}" inputmode="numeric" value="${esc(it.mois??"")}" aria-label="${esc(it.nom)} mois"><input id="ek-${i}" inputmode="numeric" value="${esc(it.km??"")}" aria-label="${esc(it.nom)} km">`).join("");
+  }
+  if(document.activeElement!==$("#seuil-km"))$("#seuil-km").value=S.ech.seuilKm??2000;
+  if(document.activeElement!==$("#seuil-j"))$("#seuil-j").value=S.ech.seuilJours??30;
+}
+let _rw=0;window.addEventListener("resize",()=>{clearTimeout(_rw);_rw=setTimeout(renderChart,150);});
+function renderAll(){renderHeader();renderHome();renderFuel();renderMaint();renderCar();renderBackup();}
+
+/* ---------- Navigation ---------- */
+const TABS={home:"#v-home",fuel:"#v-fuel",maint:"#v-maint",car:"#v-car"};
+function go(tab){
+  if(!TABS[tab])tab="home";
+  Object.entries(TABS).forEach(([k,s])=>$(s).hidden=k!==tab);
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===tab?"page":"false"));
+  if(location.hash.slice(1)!==tab)history.replaceState(null,"","#"+tab);
+  window.scrollTo(0,0);
+}
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-tab]");if(t){go(t.dataset.tab);return;}
+  const p=e.target.closest("[data-plein]");if(p){openPlein(S.pleins.find(x=>x._id===p.dataset.plein));return;}
+  const en=e.target.closest("[data-ent]");if(en){openEnt(S.entretiens.find(x=>x._id===en.dataset.ent));return;}
+  const pc=e.target.closest("[data-piece]");if(pc){openPiece(S.pieces.find(x=>x._id===pc.dataset.piece));return;}
+  const ed=e.target.closest("[data-edit]");if(ed){toggleEdit(ed.dataset.edit);return;}
+});
+window.addEventListener("hashchange",()=>go(location.hash.slice(1)));
+
+/* ---------- Données ---------- */
+function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,2200);}
+function banner(t){const b=$("#banner");if(t){b.textContent=t;b.hidden=false;}else b.hidden=true;}
+function needDb(){return true;}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function snapshot(){const st=o=>{const {_id,...r}=o;return{id:_id,...r};};return{app:"carnet-auto",format:1,exporte:new Date().toISOString().slice(0,16),vehicule:S.veh,echeances:S.ech,pleins:S.pleins.map(st),entretiens:S.entretiens.map(st),pieces:S.pieces.map(st)};}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(snapshot()));return true;}catch(e){toast("Impossible d'enregistrer sur ce téléphone");return false;}}
+function applyData(d){
+  const m=a=>(Array.isArray(a)?a:[]).map(x=>{const {id,...r}=x||{};return{...r,_id:id||uid()};});
+  S.veh=d.vehicule&&typeof d.vehicule==="object"?{...d.vehicule}:{};
+  S.ech=d.echeances&&Array.isArray(d.echeances.items)?{...d.echeances}:JSON.parse(JSON.stringify(DEFAULT_ECH));
+  S.pleins=m(d.pleins);S.entretiens=m(d.entretiens);S.pieces=m(d.pieces);
+}
+async function save(col,id,data){const _id=id||uid();const arr=S[col].slice();const i=arr.findIndex(x=>x._id===_id);const rec={...data,_id};if(i>=0)arr[i]=rec;else arr.push(rec);const prev=S[col];S[col]=arr;if(!persist()){S[col]=prev;return false;}renderAll();return true;}
+async function del(col,id){const prev=S[col];S[col]=S[col].filter(x=>x._id!==id);if(!persist()){S[col]=prev;return false;}renderAll();return true;}
+function lastBackup(){try{return localStorage.getItem(KEY_BK);}catch(e){return null;}}
+function renderBackup(){
+  const lb=lastBackup();const has=S.pleins.length||S.entretiens.length||S.veh.marque;
+  $("#last-backup").textContent=lb?"dernière le "+fd(lb.slice(0,10)):"jamais faite";
+  $("#welcome").hidden=!!has;
+  const days=lb?(Date.now()-new Date(lb))/864e5:Infinity;const nudge=$("#backup-nudge");
+  if(has&&days>30){nudge.innerHTML=(lb?"Ta dernière sauvegarde date de plus d'un mois.":"Tu n'as encore jamais sauvegardé tes données.")+' <button class="link" id="nudge-go" style="color:inherit;text-decoration:underline">Sauvegarder maintenant</button>';nudge.hidden=false;}else nudge.hidden=true;
+}
+async function boot(){
+  try{const raw=localStorage.getItem(KEY);if(raw)applyData(JSON.parse(raw));}catch(e){banner("Impossible de lire les données enregistrées sur ce téléphone.");}
+  renderAll();
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
+  if("serviceWorker" in navigator&&location.protocol.startsWith("http")){navigator.serviceWorker.register("sw.js").catch(()=>{});}
+}
+
+/* ---------- Feuilles de saisie ---------- */
+function closeSheet(){$("#sheet-root").innerHTML="";document.body.style.overflow="";}
+function sheet(html,onMount){
+  $("#sheet-root").innerHTML=`<div class="sheet-bg" id="sbg"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+  document.body.style.overflow="hidden";
+  $("#sbg").addEventListener("click",e=>{if(e.target.id==="sbg")closeSheet();});
+  $("#sheet-root").querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",closeSheet));
+  onMount&&onMount();
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("#sbg"))closeSheet();});
+function localNow(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16);}
+function delBtn(){return `<button class="btn danger" id="f-del" type="button">Supprimer</button>`;}
+function armDelete(fn){const b=$("#f-del");if(!b)return;b.addEventListener("click",async()=>{if(!b.classList.contains("armed")){b.classList.add("armed");b.textContent="Confirmer la suppression";return;}b.disabled=true;if(await fn()){closeSheet();toast("Supprimé");}else b.disabled=false;});}
+
+function openPlein(p){
+  const ed=!!p;const c=(p&&p.carburants)||[{type:"SP95 E10",litres:"",montant:""}];
+  const stations=[...new Set(S.pleins.map(x=>x.station).filter(Boolean))];
+  const lastType=(pleinsByKm().slice(-1)[0]?.carburants||[{}])[0].type||"SP95 E10";
+  const fuelBlock=(i,v)=>`<div class="fuel-block" id="fb${i}"><div class="bh"><span>${i===0?"Carburant":"2e carburant (mélange)"}</span>${i===1?'<button type="button" class="link" id="rm2">Retirer</button>':""}</div>
+    <label class="f"><span>Type</span><select id="ft${i}">${FUELS.map(f=>`<option ${f===(v.type||(i===0?lastType:"E85"))?"selected":""}>${f}</option>`).join("")}</select></label>
+    <label class="f"><span>Litres</span><input id="fl${i}" inputmode="decimal" value="${esc(v.litres??"")}" placeholder="0,00"></label>
+    <label class="f"><span>Montant €</span><input id="fm${i}" inputmode="decimal" value="${esc(v.montant??"")}" placeholder="0,00"></label></div>`;
+  sheet(`<h2>${ed?"Modifier le plein":"Nouveau plein"}</h2><form id="fp" class="fgrid" novalidate>
+    <label class="f"><span>Date et heure</span><input id="pd" type="datetime-local" value="${esc(ed?(p.date||"").slice(0,16):localNow())}"></label>
+    <label class="f"><span>Compteur (km)</span><input id="pk" inputmode="numeric" value="${esc(ed?p.km:"")}" placeholder="${fmt(curKm())}"></label>
+    <label class="f full"><span>Station</span><input id="ps" list="stations" value="${esc(ed?p.station:(pleinsByKm().slice(-1)[0]?.station||""))}"><datalist id="stations">${stations.map(s=>`<option value="${esc(s)}">`).join("")}</datalist></label>
+    <div class="f full"><span>Réservoir rempli à ras ?</span><div class="seg" id="pf"><button type="button" aria-pressed="${ed&&p.plein?"true":"false"}" data-v="1">Oui, plein complet</button><button type="button" aria-pressed="${ed&&p.plein?"false":"true"}" data-v="0">Non, partiel</button></div></div>
+    ${fuelBlock(0,c[0])}<div id="slot2" style="grid-column:1/-1;display:contents">${c[1]?fuelBlock(1,c[1]):'<button type="button" class="link" id="add2" style="grid-column:1/-1;text-align:left">+ Ajouter un 2e carburant (mélange E85…)</button>'}</div>
+    <div class="live" id="plive"></div><div id="pmsg" style="display:contents"></div>
+  </form><div class="btns">${ed?delBtn():'<button class="btn" data-close type="button">Annuler</button>'}<button class="btn primary" id="psave" type="button">Enregistrer</button></div>`,()=>{
+    let full=ed?!!p.plein:false;let confirmWarn=false;
+    $("#pf").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;full=b.dataset.v==="1";$("#pf").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));});
+    const bind2=()=>{const a=$("#add2");if(a)a.addEventListener("click",()=>{$("#slot2").innerHTML=fuelBlock(1,{});bind2();live();});const r=$("#rm2");if(r)r.addEventListener("click",()=>{$("#slot2").innerHTML='<button type="button" class="link" id="add2" style="grid-column:1/-1;text-align:left">+ Ajouter un 2e carburant (mélange E85…)</button>';bind2();live();});};
+    bind2();
+    const read=()=>{const cs=[0,1].filter(i=>$("#fl"+i)).map(i=>({type:$("#ft"+i).value,litres:num($("#fl"+i).value),montant:num($("#fm"+i).value)}));return{date:$("#pd").value,km:num($("#pk").value),station:$("#ps").value.trim(),plein:full,carburants:cs};};
+    const check=v=>{
+      const errs=[],warns=[];
+      if(!v.date)errs.push("Indique la date du plein.");
+      if(!(v.km>0))errs.push("Indique le kilométrage du compteur.");
+      v.carburants.forEach((c,i)=>{if(!(c.litres>0))errs.push(`Litres manquants pour ${c.type}.`);if(!(c.montant>0))errs.push(`Montant manquant pour ${c.type}.`);
+        if(c.litres>0&&c.montant>0){const pl=c.montant/c.litres;if(pl<0.5||pl>3.5)warns.push(`Prix au litre inhabituel pour ${c.type} : ${fmt(pl,3)} €/L. Vérifie litres et montant.`);}
+        if(c.litres>60)warns.push(`${fmt(c.litres,1)} L, c'est plus que le réservoir de la plupart des citadines. Vérifie le volume.`);});
+      if(v.km>0&&v.date){
+        const others=S.pleins.filter(x=>!p||x._id!==p._id);const d=D(v.date);
+        const before=others.filter(x=>D(x.date)<d).sort((a,b)=>D(b.date)-D(a.date))[0];
+        const after=others.filter(x=>D(x.date)>d).sort((a,b)=>D(a.date)-D(b.date))[0];
+        if(before&&v.km<num(before.km))errs.push(`Le compteur est plus bas que celui du plein du ${fd(before.date)} (${km(num(before.km))}). Vérifie le kilométrage ou la date.`);
+        if(after&&v.km>num(after.km))errs.push(`Le compteur est plus haut que celui du plein suivant, le ${fd(after.date)} (${km(num(after.km))}). Vérifie le kilométrage ou la date.`);
+        if(before&&v.km-num(before.km)>1500)warns.push(`${km(v.km-num(before.km))} depuis le plein précédent : c'est beaucoup. Vérifie le compteur.`);
+      }
+      return{errs,warns};
+    };
+    const live=()=>{const v=read();let L=0,E=0;v.carburants.forEach(c=>{L+=c.litres||0;E+=c.montant||0;});
+      const prev=S.pleins.filter(x=>(!p||x._id!==p._id)&&num(x.km)<v.km).sort((a,b)=>num(b.km)-num(a.km))[0];
+      $("#plive").innerHTML=(L>0?`<span>Total <b>${fmt(L,2)} L</b></span>`:"")+(E>0?`<span><b>${eur(E)}</b></span>`:"")+(L>0&&E>0?`<span><b>${fmt(E/L,3)} €/L</b></span>`:"")+(prev&&v.km>0?`<span>Distance <b>${km(v.km-num(prev.km))}</b></span>`:"");
+      confirmWarn=false;$("#pmsg").innerHTML="";$("#psave").textContent="Enregistrer";};
+    $("#fp").addEventListener("input",live);live();
+    $("#psave").addEventListener("click",async()=>{
+      const v=read();const {errs,warns}=check(v);
+      if(errs.length){$("#pmsg").innerHTML=errs.map(e=>`<div class="msg e">${esc(e)}</div>`).join("");return;}
+      if(warns.length&&!confirmWarn){$("#pmsg").innerHTML=warns.map(e=>`<div class="msg w">${esc(e)}</div>`).join("");confirmWarn=true;$("#psave").textContent="Enregistrer quand même";return;}
+      const b=$("#psave");b.disabled=true;
+      const data={date:v.date,km:v.km,station:v.station,plein:v.plein,carburants:v.carburants.map(c=>({type:c.type,litres:Math.round(c.litres*100)/100,montant:Math.round(c.montant*100)/100}))};
+      if(await save("pleins",ed?p._id:null,data)){closeSheet();toast(ed?"Plein modifié":"Plein enregistré");}else b.disabled=false;
+    });
+    if(ed)armDelete(()=>del("pleins",p._id));
+  });
+}
+function openEnt(en){
+  const ed=!!en;const types=(S.ech.items||[]).map(i=>i.nom);const known=!ed||types.some(t=>norm(t)===norm(en.type));
+  sheet(`<h2>${ed?"Modifier l'entretien":"Nouvel entretien"}</h2><form id="fe" class="fgrid" novalidate>
+    <label class="f full"><span>Intervention</span><select id="et">${types.map(t=>`<option ${ed&&norm(t)===norm(en.type)?"selected":""}>${esc(t)}</option>`).join("")}<option value="__autre" ${!known?"selected":""}>Autre…</option></select></label>
+    <label class="f full" id="eo-w" ${known?"hidden":""}><span>Nom de l'intervention</span><input id="eo" value="${esc(!known?en.type:"")}" placeholder="ex. Plaquettes de frein arrière"></label>
+    <label class="f"><span>Date</span><input id="ed" type="date" value="${esc(ed?en.date:new Date().toISOString().slice(0,10))}"></label>
+    <label class="f"><span>Compteur (km)</span><input id="ek" inputmode="numeric" value="${esc(ed?en.km:"")}" placeholder="${fmt(curKm())}"></label>
+    <label class="f"><span>Montant €</span><input id="em" inputmode="decimal" value="${esc(ed&&en.montant!=null?en.montant:"")}" placeholder="0,00"></label>
+    <label class="f"><span>Note</span><input id="en" value="${esc(ed?en.note||"":"")}" placeholder="garage, pièce…"></label>
+    <div id="emsg" style="display:contents"></div>
+    <p class="note f full" style="margin:0">Astuce : pour une vidange avec filtres, enregistre une ligne par intervention (Vidange, Filtre d'habitacle…) pour que chaque échéance se mette à jour.</p>
+  </form><div class="btns">${ed?delBtn():'<button class="btn" data-close type="button">Annuler</button>'}<button class="btn primary" id="esave" type="button">Enregistrer</button></div>`,()=>{
+    $("#et").addEventListener("change",()=>{$("#eo-w").hidden=$("#et").value!=="__autre";});
+    $("#esave").addEventListener("click",async()=>{
+      const type=$("#et").value==="__autre"?$("#eo").value.trim():$("#et").value;const kmv=num($("#ek").value);const m=num($("#em").value);
+      const errs=[];if(!type)errs.push("Indique le nom de l'intervention.");if(!$("#ed").value)errs.push("Indique la date.");if(!(kmv>0))errs.push("Indique le kilométrage.");
+      if($("#em").value.trim()&&!(m>=0))errs.push("Le montant n'est pas un nombre.");
+      if(errs.length){$("#emsg").innerHTML=errs.map(e=>`<div class="msg e">${esc(e)}</div>`).join("");return;}
+      $("#esave").disabled=true;
+      const data={date:$("#ed").value,km:kmv,type,montant:isFinite(m)?Math.round(m*100)/100:null,note:$("#en").value.trim()};
+      if(await save("entretiens",ed?en._id:null,data)){closeSheet();toast(ed?"Entretien modifié":"Entretien enregistré");}else $("#esave").disabled=false;
+    });
+    if(ed)armDelete(()=>del("entretiens",en._id));
+  });
+}
+function openPiece(pc){
+  const ed=!!pc;const cats=[...new Set(S.pieces.map(x=>x.categorie).filter(Boolean))];
+  const F=[["pcat","categorie","Catégorie"],["part","article","Article"],["pq","qte","Quantité"],["pma","marque","Marque"],["pr","ref","Référence"],["pp","prix","Prix €"],["pmg","magasin","Magasin"]];
+  sheet(`<h2>${ed?"Modifier la pièce":"Nouvelle pièce"}</h2><form class="fgrid" novalidate>${F.map(f=>`<label class="f ${f[1]==="article"||f[1]==="categorie"?"full":""}"><span>${f[2]}</span><input id="${f[0]}" ${f[1]==="categorie"?'list="cats"':""} ${f[1]==="prix"?'inputmode="decimal"':""} value="${esc(ed?pc[f[1]]??"":"")}"></label>`).join("")}<datalist id="cats">${cats.map(c=>`<option value="${esc(c)}">`).join("")}</datalist><div id="pcmsg" style="display:contents"></div></form>
+  <div class="btns">${ed?delBtn():'<button class="btn" data-close type="button">Annuler</button>'}<button class="btn primary" id="pcsave" type="button">Enregistrer</button></div>`,()=>{
+    $("#pcsave").addEventListener("click",async()=>{
+      const d={};F.forEach(f=>d[f[1]]=$("#"+f[0]).value.trim());d.prix=num(d.prix);if(!isFinite(d.prix))d.prix=null;
+      if(!d.article){$("#pcmsg").innerHTML='<div class="msg e">Indique le nom de l\'article.</div>';return;}
+      if(ed&&pc.date)d.date=pc.date;
+      $("#pcsave").disabled=true;if(await save("pieces",ed?pc._id:null,d)){closeSheet();toast("Pièce enregistrée");}else $("#pcsave").disabled=false;
+    });
+    if(ed)armDelete(()=>del("pieces",pc._id));
+  });
+}
+async function toggleEdit(group){
+  if(S.editing!==group){S.editing=group;renderCar();const first=document.querySelector(`#kv-${group==="veh"?"veh":"ins"} input`);first&&first.focus();return;}
+  const fields=group==="veh"?VEH_FIELDS:INS_FIELDS;const data={};
+  fields.forEach(f=>{let v=$("#kv-"+f[0]).value.trim();if(f[2]==="num"){const n=num(v);v=isFinite(n)?n:null;}data[f[0]]=v;});
+  const prev=S.veh;S.veh={...S.veh,...data};
+  if(persist()){S.editing=null;renderAll();toast("Fiche enregistrée");}else S.veh=prev;
+}
+$("#save-ech").addEventListener("click",async()=>{
+  const items=(S.ech.items||[]).map((it,i)=>{const m=num($("#em-"+i).value),k=num($("#ek-"+i).value);return{...it,mois:isFinite(m)?m:null,km:isFinite(k)?k:null};});
+  const data={...S.ech,items,seuilKm:num($("#seuil-km").value)||2000,seuilJours:num($("#seuil-j").value)||30};
+  const prev=S.ech;S.ech=data;if(persist()){document.activeElement&&document.activeElement.blur();renderAll();toast("Intervalles enregistrés");}else S.ech=prev;
+});
+$("#fab-fuel").addEventListener("click",()=>openPlein(null));
+$("#fab-maint").addEventListener("click",()=>openEnt(null));
+$("#add-piece").addEventListener("click",()=>openPiece(null));
+
+/* ---------- Export ---------- */
+function csv(rows){return "﻿"+rows.map(r=>r.map(v=>{const s=v==null?"":String(v);return /[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(";")).join("\r\n");}
+const dec=n=>isFinite(n)?String(n).replace(".",","):"";
+async function exportFile(name,data,type){
+  const blob=new Blob([data],{type:type||"text/csv;charset=utf-8"});
+  try{const file=new File([blob],name,{type:blob.type});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return true;}}
+  catch(e){if(e&&e.name==="AbortError")return false;}
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);return true;
+}
+async function backupNow(){
+  const d=new Date().toISOString().slice(0,10);
+  const ok=await exportFile("sauvegarde-carnet-"+d+".json",JSON.stringify(snapshot(),null,1),"application/json");
+  if(ok){try{localStorage.setItem(KEY_BK,new Date().toISOString());}catch(e){}renderBackup();toast("Sauvegarde créée");}
+}
+$("#exp-json").addEventListener("click",backupNow);
+document.addEventListener("click",e=>{if(e.target.id==="nudge-go")backupNow();});
+const pickFile=()=>$("#imp-file").click();
+$("#imp-json").addEventListener("click",pickFile);
+$("#w-import").addEventListener("click",()=>{go("car");pickFile();});
+$("#w-start").addEventListener("click",()=>{go("car");if(S.editing!=="veh")toggleEdit("veh");});
+$("#imp-file").addEventListener("change",async e=>{
+  const f=e.target.files&&e.target.files[0];e.target.value="";if(!f)return;const box=$("#imp-msg");
+  let d;try{d=JSON.parse(await f.text());}catch(err){box.innerHTML='<div class="msg e">Ce fichier n\'est pas une sauvegarde lisible. Choisis un fichier .json créé par le bouton « Sauvegarder ».</div>';return;}
+  if(!d||d.app!=="carnet-auto"){box.innerHTML='<div class="msg e">Ce fichier ne vient pas de cette application. Choisis un fichier « sauvegarde-carnet… .json ».</div>';return;}
+  const n=k=>Array.isArray(d[k])?d[k].length:0;const has=S.pleins.length||S.entretiens.length;
+  box.innerHTML=`<div class="msg i">Sauvegarde du ${esc(fd((d.exporte||"").slice(0,10)))} : ${n("pleins")} pleins, ${n("entretiens")} entretiens, ${n("pieces")} pièces${d.vehicule&&d.vehicule.modele?" · "+esc((d.vehicule.marque||"")+" "+d.vehicule.modele):""}.${has?" Elle remplacera les données actuelles de ce téléphone.":""}</div><div class="btns"><button class="btn" id="imp-cancel">Annuler</button><button class="btn primary" id="imp-ok">${has?"Remplacer mes données":"Restaurer"}</button></div>`;
+  $("#imp-cancel").onclick=()=>box.innerHTML="";
+  $("#imp-ok").onclick=()=>{const prev=snapshot();applyData(d);if(persist()){box.innerHTML="";renderAll();go("home");toast("Données restaurées");}else{applyData(prev);renderAll();}};
+});
+$("#exp-fuel").addEventListener("click",()=>{
+  const rows=[["Date","Kilométrage","Plein complet","Station","Carburant 1","Litres 1","Montant 1","Carburant 2","Litres 2","Montant 2","Total litres","Total €"]];
+  pleinsByKm().forEach(p=>{const c=p.carburants||[];const t=pleinTot(p);rows.push([(p.date||"").replace("T"," "),p.km,p.plein?"Oui":"Non",p.station,c[0]?.type,dec(c[0]?.litres),dec(c[0]?.montant),c[1]?.type||"",dec(c[1]?.litres),dec(c[1]?.montant),dec(Math.round(t.l*100)/100),dec(Math.round(t.e*100)/100)]);});
+  exportFile("pleins.csv",csv(rows));
+});
+$("#exp-maint").addEventListener("click",()=>{
+  const rows=[["Date","Kilométrage","Intervention","Montant","Note"]];
+  S.entretiens.slice().sort((a,b)=>D(a.date)-D(b.date)).forEach(e=>rows.push([e.date,e.km,e.type,dec(e.montant),e.note||""]));
+  exportFile("entretiens.csv",csv(rows));
+});
+
+go(location.hash.slice(1)||"home");
+boot();
+})();
+</script>
+</body>
+</html>
