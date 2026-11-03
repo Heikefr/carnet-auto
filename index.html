@@ -52,7 +52,7 @@
 html{-webkit-text-size-adjust:100%;background:var(--bg)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:17px;line-height:1.35;letter-spacing:-.01em;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
-  padding-block:env(safe-area-inset-top,0px) calc(var(--dock-h) + 130px + env(safe-area-inset-bottom,0px));overscroll-behavior-y:none}
+  padding-block:env(safe-area-inset-top,0px) calc(var(--dock-h) + 44px + env(safe-area-inset-bottom,0px));overscroll-behavior-y:none}
 button,input,select{font:inherit;color:inherit;letter-spacing:inherit}
 input,select{font-size:17px}
 button{cursor:pointer}
@@ -119,22 +119,18 @@ button.row:active,.row.tap:active{background:var(--card-2)}
 .h-line .km{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;font-family:var(--f-r)}
 .h-line svg{width:18px;height:18px}
 .h-state{display:inline-flex;align-items:center;gap:7px;margin-top:10px;font-size:15px;font-weight:500}
-.stage{position:relative;height:clamp(230px,62vw,340px);margin:6px -16px 0;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.stage{position:relative;height:clamp(210px,56vw,330px);margin:6px -12px 10px;user-select:none;-webkit-user-select:none}
 .stage::before{content:"";position:absolute;left:8%;right:8%;top:10%;bottom:4%;border-radius:50%;background:radial-gradient(closest-side,var(--stage-glow),transparent);opacity:.95;pointer-events:none}
 .stage::after{content:"";position:absolute;left:10%;right:10%;bottom:9%;height:22%;border-radius:50%;background:radial-gradient(closest-side,var(--stage-floor),transparent);pointer-events:none;z-index:-1}
-.stage canvas{position:relative;width:100%;height:100%;display:block;cursor:grab}
-.stage canvas:active{cursor:grabbing}
-.stage .hint{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center;white-space:nowrap;pointer-events:none;transition:opacity .4s}
+.photo{position:absolute;inset:3% 0 5%;display:flex;align-items:center;justify-content:center}
+.photo img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 18px 16px rgba(0,0,0,.22))}
+.photo-empty{position:absolute;inset:8% 6%;border:1.5px dashed var(--sep);border-radius:28px;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);font-size:15px}
+.photo-empty svg{width:64px;height:64px;stroke-width:1.2}
+.thumb{width:64px;height:40px;object-fit:contain;border-radius:8px;background:var(--card-2)}
+.icon-prev{width:44px;height:44px;border-radius:11px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
 .stage .plate{position:absolute;right:20px;top:10px;font-family:var(--f-m);font-size:12px;font-weight:600;display:flex;border-radius:5px;overflow:hidden;border:1px solid var(--sep);background:var(--card)}
 .stage .plate i{background:#2347a8;color:#fff;font-style:normal;font-size:10px;padding:2px 4px;display:flex;align-items:center}
 .stage .plate span{padding:2px 7px}
-.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:4px 0 18px}
-.qa{display:flex;flex-direction:column;align-items:center;gap:7px;border:0;background:none;padding:0;font-size:12px;font-weight:500;color:var(--ink-2)}
-.qa .gl{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;color:var(--ink)}
-.qa svg{width:25px;height:25px}
-.qa:active .gl{transform:scale(.94)}
-.nudge{display:flex;align-items:center;gap:10px;background:var(--orange-soft);color:var(--orange);border-radius:18px;padding:12px 14px;font-size:15px;margin-bottom:12px}
-.nudge button{margin-left:auto;border:0;background:var(--orange);color:#fff;border-radius:999px;padding:6px 12px;font-weight:600;font-size:14px;white-space:nowrap}
 .welcome{background:var(--card);border-radius:var(--r-card);padding:18px;margin-bottom:12px}
 .welcome h2{margin:0 0 6px;font-size:20px}
 .welcome p{margin:0 0 14px;color:var(--muted);font-size:15px}
@@ -181,9 +177,6 @@ button.row:active,.row.tap:active{background:var(--card-2)}
 .switch span::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .2s}
 .switch input:checked+span{background:var(--green)}
 .switch input:checked+span::after{transform:translateX(20px)}
-.swatches{display:flex;gap:10px}
-.sw{width:30px;height:30px;border-radius:50%;border:0;padding:0;box-shadow:inset 0 0 0 1px rgba(127,127,127,.35)}
-.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--accent)}
 .sel{border:0;background:none;color:var(--muted);font-size:17px;text-align:right;max-width:55%}
 .inline-in{border:0;background:none;text-align:right;color:var(--muted);font-size:17px;min-width:0;flex:1}
 .row.link-row .t{color:var(--accent);font-weight:400}
@@ -191,14 +184,7 @@ button.row:active,.row.tap:active{background:var(--card-2)}
 
 /* ---------- Dock flottant ---------- */
 .dock{position:fixed;z-index:20;left:max(14px,env(safe-area-inset-left,0px));right:max(14px,env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));
-  display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"acc acc" "tab plus";gap:10px;max-width:560px;margin:0 auto;transition:gap .3s}
-.acc{grid-area:acc;height:52px;border-radius:999px;display:flex;align-items:center;gap:11px;padding:0 8px 0 14px;border:0;text-align:left;color:var(--ink);min-width:0}
-.acc .ai{width:34px;height:34px;border-radius:10px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none}
-.acc .ai svg{width:19px;height:19px}
-.acc .at{flex:1;min-width:0;line-height:1.2}
-.acc .at b{display:block;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.acc .at span{display:block;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.acc .aplus{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--ink);flex:none}
+  display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"tab plus";gap:10px;max-width:560px;margin:0 auto;transition:gap .3s}
 .tabbar{grid-area:tab;height:var(--dock-h);border-radius:999px;display:flex;align-items:stretch;padding:4px;gap:2px;min-width:0}
 .tabbar button{flex:1;border:0;background:none;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10.5px;font-weight:600;color:var(--ink);min-width:0;transition:flex .3s,background .2s,color .2s,padding .3s}
 .tabbar button svg{width:24px;height:24px}
@@ -206,11 +192,10 @@ button.row:active,.row.tap:active{background:var(--card-2)}
 .plus{grid-area:plus;width:var(--dock-h);height:var(--dock-h);border-radius:50%;display:grid;place-items:center;border:0;color:var(--ink)}
 .plus svg{width:26px;height:26px;transition:transform .25s}
 .plus[aria-expanded="true"] svg{transform:rotate(45deg)}
-.dock.min{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"tab acc plus"}
+.dock.min{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"tab . plus"}
 .dock.min .tabbar{width:var(--dock-h);padding:4px}
 .dock.min .tabbar button:not([aria-current="page"]){flex:0;width:0;padding:0;overflow:hidden;opacity:0}
 .dock.min .tabbar button[aria-current="page"] span{display:none}
-.dock.min .acc{height:var(--dock-h)}
 .menu{position:fixed;z-index:22;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(10px + var(--dock-h) + 10px + env(safe-area-inset-bottom,0px));min-width:230px;border-radius:22px;padding:6px;transform-origin:bottom right;
   background:var(--glass-strong)}
 .menu button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;padding:12px 12px;border-radius:14px;font-size:17px;color:var(--ink);text-align:left}
@@ -279,15 +264,8 @@ label.btn{cursor:pointer}
 
   <div class="stage" id="stage">
     <div class="plate" id="h-plate-w"><i>F</i><span id="h-plate">—</span></div>
-    <canvas id="car3d" aria-label="Voiture en 3D, fais glisser pour la tourner" role="img"></canvas>
-        <div class="hint" id="hint"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M7 12h10M7 12l3-3M7 12l3 3M17 12l-3-3M17 12l-3 3"/></svg>Fais glisser pour tourner</div>
-  </div>
-
-  <div class="quick">
-    <button class="qa" data-act="plein"><span class="gl"><svg class="i" viewBox="0 0 24 24"><path d="M4 20V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15"/><path d="M3 20h12"/><path d="M6 8h6"/><path d="M14 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/></svg></span>Plein</button>
-    <button class="qa" data-act="entretien"><span class="gl"><svg class="i" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L4 16.8 7.2 20l5.3-5.3a4 4 0 0 0 5.2-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg></span>Entretien</button>
-    <button class="qa" data-go="couts"><span class="gl"><svg class="i" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>Coûts</button>
-    <button class="qa" data-act="backup"><span class="gl"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></span>Sauvegarder</button>
+    <div class="photo" id="photo" hidden><img id="photo-img" alt="Ma voiture"></div>
+    <button class="photo-empty" id="photo-empty" data-go="reglages"><svg class="i" viewBox="0 0 24 24"><path d="M5 17v-3.5l1.8-4.6A2 2 0 0 1 8.7 7.6h6.6a2 2 0 0 1 1.9 1.3l1.8 4.6V17"/><path d="M3.5 17h17v2h-17z"/><circle cx="7.5" cy="14.5" r=".8"/><circle cx="16.5" cy="14.5" r=".8"/></svg>Ajoute une photo de ta voiture dans Réglages</button>
   </div>
 
   <div id="welcome" class="welcome" hidden>
@@ -295,7 +273,6 @@ label.btn{cursor:pointer}
     <p>Tes données restent sur ce téléphone. Restaure une sauvegarde pour retrouver ton historique, ou commence par la fiche de ton véhicule.</p>
     <div class="btns"><label class="btn primary" for="imp-file">Restaurer</label><button class="btn" data-go="vehicule" data-edit-after="veh">Ma voiture</button></div>
   </div>
-  <div class="nudge" id="nudge" hidden><span id="nudge-t"></span><button data-act="backup">Sauvegarder</button></div>
 
   <div class="group" id="home-rows"></div>
   <div class="sec-f" id="home-foot"></div>
@@ -353,11 +330,23 @@ label.btn{cursor:pointer}
   <div class="sec-h"><span>Apparence</span></div>
   <div class="group"><div class="row"><div class="seg" id="theme-seg"><button data-theme-v="auto">Automatique</button><button data-theme-v="light">Clair</button><button data-theme-v="dark">Sombre</button></div></div></div>
 
-  <div class="sec-h"><span>Voiture 3D</span></div>
+  <div class="sec-h"><span>Photo de la voiture</span></div>
   <div class="group">
-    <div class="row"><div class="body"><div class="t">Rotation automatique</div></div><label class="switch"><input type="checkbox" id="pref-anim"><span></span></label></div>
-    <div class="row"><div class="body"><div class="t">Couleur</div></div><div class="swatches" id="swatches"></div></div>
+    <div class="row"><img class="thumb" id="photo-thumb" alt="" hidden><div class="body"><div class="t" id="photo-state">Aucune photo</div></div></div>
+    <label class="row link-row tap" for="photo-file" style="cursor:pointer"><div class="body"><div class="t" id="photo-pick">Choisir une photo</div></div></label>
+    <div class="row"><div class="body"><div class="t">Retirer le fond uni</div><div class="s">Rend transparent un fond blanc ou gris autour de la voiture</div></div><label class="switch"><input type="checkbox" id="pref-detour" checked><span></span></label></div>
+    <button class="row danger" id="photo-del" hidden><div class="body"><div class="t">Retirer la photo</div></div></button>
   </div>
+  <div class="sec-f">Idéal : une photo de trois quarts avant, prise sur un fond uni. Elle reste uniquement sur ce téléphone et suit tes sauvegardes.</div>
+  <input type="file" id="photo-file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true">
+
+  <div class="sec-h"><span>Icône de l'appli</span></div>
+  <div class="group">
+    <div class="row"><img class="icon-prev" src="icon-180.png" alt="Icône actuelle"><div class="body"><div class="t">Icône actuelle</div></div></div>
+    <label class="row link-row tap" for="icon-file" style="cursor:pointer"><div class="body"><div class="t">Créer une icône à partir d'une image</div></div></label>
+  </div>
+  <div class="sec-f">iPhone prend l'icône sur le site au moment de l'ajout à l'écran d'accueil. L'appli prépare les 4 fichiers d'icône ; il faut ensuite les déposer sur GitHub et réinstaller l'appli (les étapes s'affichent).</div>
+  <input type="file" id="icon-file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true">
 
   <div class="sec-h"><span>Nouveau plein</span></div>
   <div class="group">
@@ -400,11 +389,6 @@ label.btn{cursor:pointer}
 
 <!-- ============ DOCK ============ -->
 <div class="dock" id="dock">
-  <button class="gl acc" id="acc" aria-label="Ajouter un plein">
-    <span class="ai"><svg class="i" viewBox="0 0 24 24"><path d="M4 20V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15"/><path d="M3 20h12"/><path d="M6 8h6"/><path d="M14 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/></svg></span>
-    <span class="at"><b id="acc-t">Aucun plein</b><span id="acc-s">Touche pour en ajouter un</span></span>
-    <span class="aplus"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
-  </button>
   <nav class="gl tabbar" id="tabbar" aria-label="Sections">
     <button data-tab="home" aria-current="page"><svg class="i" viewBox="0 0 24 24"><path d="M5 17v-3.5l1.8-4.6A2 2 0 0 1 8.7 7.6h6.6a2 2 0 0 1 1.9 1.3l1.8 4.6V17"/><path d="M3.5 17h17v2h-17z"/><circle cx="7.5" cy="14.5" r=".8"/><circle cx="16.5" cy="14.5" r=".8"/></svg><span>Accueil</span></button>
     <button data-tab="pleins"><svg class="i" viewBox="0 0 24 24"><path d="M4 20V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15"/><path d="M3 20h12"/><path d="M6 8h6"/><path d="M14 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/></svg><span>Pleins</span></button>
@@ -426,12 +410,11 @@ label.btn{cursor:pointer}
 <script>
 (function(){
 "use strict";
-const VERSION="2.0";
+const VERSION="2.1";
 const FUELS=["SP95 E10","SP98","E85","SP95","Gazole"];
-const COLORS={noir:["Noir",0x0c0d10,"#15161a"],gris:["Gris",0x55595e,"#5d6166"],blanc:["Blanc nacré",0xe8e7e2,"#ebeae5"],bleu:["Bleu nuit",0x182c4a,"#1f3657"],rouge:["Rouge",0x7a1016,"#8b1820"]};
 const DEFAULT_ECH={seuilKm:2000,seuilJours:30,items:[{nom:"Vidange Moteur",mois:12,km:25000},{nom:"Liquide de frein",mois:24,km:30000},{nom:"Liquide de refroidissement",mois:60,km:90000},{nom:"Filtre d'habitacle",mois:12,km:25000},{nom:"Bougies d'allumage",mois:72,km:90000},{nom:"Filtre à air moteur",mois:48,km:48000},{nom:"Disque de frein avant",mois:60,km:90000},{nom:"Pneu avant",mois:48,km:50000},{nom:"Pneu arrière",mois:48,km:25000},{nom:"Contrôle technique",mois:24,km:null}]};
-const DEFAULT_PREFS={theme:"auto",anim:true,couleur:"noir",carburant:"auto",station:"",rappel:30};
-const KEY="carnet-auto-v1",KEY_BK="carnet-auto-derniere-sauvegarde";
+const DEFAULT_PREFS={theme:"auto",carburant:"auto",station:"",rappel:30,detour:true};
+const KEY="carnet-auto-v1",KEY_BK="carnet-auto-derniere-sauvegarde",KEY_PHOTO="carnet-auto-photo";
 const S={veh:{},ech:JSON.parse(JSON.stringify(DEFAULT_ECH)),pleins:[],entretiens:[],pieces:[],prefs:{...DEFAULT_PREFS},editing:null,view:"home"};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -495,7 +478,6 @@ function applyTheme(){
   if(t==="light"||t==="dark")r.setAttribute("data-theme",t);else r.removeAttribute("data-theme");
   const dark=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);
   document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.setAttribute("content",dark?"#000000":"#f2f2f7"));
-  Car3D.theme(dark);
 }
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",applyTheme);
 
@@ -516,13 +498,11 @@ function renderHome(){
     {go:"pleins",ic:"var(--accent)",svg:'<path d="M4 20V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15"/><path d="M3 20h12"/><path d="M6 8h6"/><path d="M14 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/>',t:"Pleins",s:last?`Dernier ${fd(last.date,{day:"numeric",month:"short"})} · ${eur(pleinTot(last).e)} · ${esc(last.station||"")}`:"Aucun plein",v:fs?`<b>${fmt(fs.conso,1)}</b> L/100`:""},
     {go:"couts",ic:"var(--green)",svg:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',t:"Coûts",s:t?`${fmt(t.perKm,2)} €/km tout compris`:"Disponible après 2 pleins",v:t?`<b>${fmt(t.perMonth,0)} €</b>/mois`:""},
     {go:"vehicule",ic:"#5e5ce6",svg:'<path d="M5 17v-3.5l1.8-4.6A2 2 0 0 1 8.7 7.6h6.6a2 2 0 0 1 1.9 1.3l1.8 4.6V17"/><path d="M3.5 17h17v2h-17z"/>',t:"Véhicule",s:[v.immat,v.assureur].filter(Boolean).map(esc).join(" · ")||"Fiche, pneus, assurance",v:""},
-    {go:"reglages",ic:"#8e8e93",svg:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/>',t:"Réglages",s:lb?"Sauvegarde "+ago(lb):"Aucune sauvegarde",v:""}
+    {go:"reglages",ic:"#8e8e93",svg:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/>',t:"Réglages",s:(backupLate()?'<span class="dot d-warn" style="margin-top:5px"></span>':"")+(lb?"Sauvegarde "+ago(lb):"Aucune sauvegarde"),v:backupLate()?'<span class="pill s-warn">Sauvegarder</span>':""}
   ];
   $("#home-rows").innerHTML=rows.map(r=>`<button class="row has-ic" data-go="${r.go}"><span class="ic" style="background:${r.ic}"><svg class="i" viewBox="0 0 24 24">${r.svg}</svg></span><span class="body"><span class="t"><span>${r.t}</span></span><span class="s">${r.s}</span></span><span class="v">${r.v}</span>${CHEV}</button>`).join("");
+  renderPhoto();
   $("#home-foot").textContent=v.premiereImmat?`1re immatriculation le ${fd(v.premiereImmat)} · ${Math.floor((Date.now()-D(v.premiereImmat))/(365.25*864e5))} ans`:"";
-  // accessoire
-  if(last){$("#acc-t").textContent="Dernier plein · "+fd(last.date,{day:"numeric",month:"short"});$("#acc-s").textContent=`${eur(pleinTot(last).e)} · ${fmt(pleinTot(last).l,1)} L · ${last.station||""}`;}
-  else{$("#acc-t").textContent="Aucun plein";$("#acc-s").textContent="Touche pour en ajouter un";}
 }
 function kpiHTML(list){return list.map(x=>`<div class="kpi"><div class="k">${x[0]}</div><div class="v">${x[1]}<small>${x[2]}</small></div><div class="d">${esc(x[3])}</div></div>`).join("");}
 function renderCouts(){
@@ -607,8 +587,8 @@ function renderVehicule(){
 }
 function renderReglages(){
   document.querySelectorAll("#theme-seg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.themeV===S.prefs.theme)));
-  $("#pref-anim").checked=!!S.prefs.anim;
-  $("#swatches").innerHTML=Object.entries(COLORS).map(([k,c])=>`<button class="sw" style="background:${c[2]}" data-color="${k}" aria-label="${c[0]}" aria-pressed="${S.prefs.couleur===k}"></button>`).join("");
+  $("#pref-detour").checked=S.prefs.detour!==false;
+  const ph=getPhoto();$("#photo-thumb").hidden=!ph;if(ph)$("#photo-thumb").src=ph;$("#photo-state").textContent=ph?"Photo enregistrée":"Aucune photo";$("#photo-pick").textContent=ph?"Changer de photo":"Choisir une photo";$("#photo-del").hidden=!ph;
   $("#pref-fuel").innerHTML=`<option value="auto">Le dernier utilisé</option>`+FUELS.map(f=>`<option ${S.prefs.carburant===f?"selected":""}>${f}</option>`).join("");
   if(document.activeElement!==$("#pref-station"))$("#pref-station").value=S.prefs.station||"";
   $("#pref-rappel").value=String(S.prefs.rappel??30);
@@ -621,11 +601,9 @@ function renderReglages(){
 }
 function renderMeta(){
   const has=S.pleins.length||S.entretiens.length||S.veh.marque;$("#welcome").hidden=!!has;
-  const lb=lastBackup();const every=num(S.prefs.rappel);const days=lb?(Date.now()-new Date(lb))/864e5:Infinity;
-  if(has&&every>0&&days>every){$("#nudge-t").textContent=lb?"Dernière sauvegarde "+ago(lb)+".":"Aucune sauvegarde de tes données.";$("#nudge").hidden=false;}else $("#nudge").hidden=true;
 }
 function renderAll(){renderHome();renderPleins();renderEntretien();renderCouts();renderVehicule();renderReglages();renderMeta();}
-let _rw=0;window.addEventListener("resize",()=>{clearTimeout(_rw);_rw=setTimeout(()=>{renderChart();Car3D.resize();},150);});
+let _rw=0;window.addEventListener("resize",()=>{clearTimeout(_rw);_rw=setTimeout(renderChart,150);});
 
 /* ---------- Navigation ---------- */
 const VIEWS=["home","pleins","entretien","couts","vehicule","reglages"];
@@ -637,7 +615,6 @@ function go(v,opts){
   if(location.hash.slice(1)!==v)history.replaceState(null,"","#"+v);
   $("#tb-title").textContent=$("#v-"+v).dataset.title||"";$("#tb-back").hidden=!$("#v-"+v).dataset.parent;
   window.scrollTo(0,0);onScroll();closeMenu();
-  if(v==="home")Car3D.start();else Car3D.stop();
   if(v==="couts")renderChart();
 }
 window.addEventListener("hashchange",()=>{const v=location.hash.slice(1);if(v!==S.view)go(v);});
@@ -647,7 +624,7 @@ function onScroll(){const y=window.scrollY;$("#topbar").classList.toggle("show",
   const dock=$("#dock");if(y>lastY+6&&y>80)dock.classList.add("min");else if(y<lastY-6||y<40)dock.classList.remove("min");lastY=y;}
 window.addEventListener("scroll",onScroll,{passive:true});
 document.addEventListener("click",e=>{
-  const el=e.target.closest("[data-tab],[data-go],[data-act],[data-plein],[data-ent],[data-piece],[data-edit],[data-color],[data-theme-v]");if(!el)return;
+  const el=e.target.closest("[data-tab],[data-go],[data-act],[data-plein],[data-ent],[data-piece],[data-edit],[data-theme-v]");if(!el)return;
   if(el.dataset.tab){if(el.dataset.tab===S.view)window.scrollTo({top:0,behavior:"smooth"});else go(el.dataset.tab);return;}
   if(el.dataset.go){go(el.dataset.go);if(el.dataset.editAfter&&S.editing!==el.dataset.editAfter)toggleEdit(el.dataset.editAfter);return;}
   if(el.dataset.act){closeMenu();const a=el.dataset.act;
@@ -657,17 +634,15 @@ document.addEventListener("click",e=>{
   if(el.dataset.ent){openEnt(S.entretiens.find(x=>x._id===el.dataset.ent));return;}
   if(el.dataset.piece){openPiece(S.pieces.find(x=>x._id===el.dataset.piece));return;}
   if(el.dataset.edit){toggleEdit(el.dataset.edit);return;}
-  if(el.dataset.color){S.prefs.couleur=el.dataset.color;persist();Car3D.color(COLORS[S.prefs.couleur][1]);renderReglages();return;}
   if(el.dataset.themeV){S.prefs.theme=el.dataset.themeV;persist();applyTheme();renderReglages();return;}
 });
-$("#acc").addEventListener("click",()=>openPlein(null));
 function openMenu(){$("#menu").hidden=false;$("#scrim").hidden=false;$("#plus").setAttribute("aria-expanded","true");}
 function closeMenu(){$("#menu").hidden=true;$("#scrim").hidden=true;$("#plus").setAttribute("aria-expanded","false");}
 $("#plus").addEventListener("click",()=>$("#menu").hidden?openMenu():closeMenu());
 $("#scrim").addEventListener("click",closeMenu);
 
 /* ---------- Réglages ---------- */
-$("#pref-anim").addEventListener("change",e=>{S.prefs.anim=e.target.checked;persist();Car3D.anim(S.prefs.anim);});
+$("#pref-detour").addEventListener("change",e=>{S.prefs.detour=e.target.checked;persist();});
 $("#pref-fuel").addEventListener("change",e=>{S.prefs.carburant=e.target.value;persist();toast("Enregistré");});
 $("#pref-station").addEventListener("change",e=>{S.prefs.station=e.target.value.trim();persist();toast("Enregistré");});
 $("#pref-rappel").addEventListener("change",e=>{S.prefs.rappel=num(e.target.value);persist();renderMeta();toast("Enregistré");});
@@ -684,7 +659,7 @@ $("#wipe").addEventListener("click",()=>{
 
 /* ---------- Stockage ---------- */
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-function snapshot(){const st=o=>{const {_id,...r}=o;return{id:_id,...r};};return{app:"carnet-auto",format:2,version:VERSION,exporte:new Date().toISOString().slice(0,16),vehicule:S.veh,echeances:S.ech,reglages:S.prefs,pleins:S.pleins.map(st),entretiens:S.entretiens.map(st),pieces:S.pieces.map(st)};}
+function snapshot(withPhoto){const st=o=>{const {_id,...r}=o;return{id:_id,...r};};const ph=withPhoto?getPhoto():null;return{...(ph?{photo:ph}:{}),app:"carnet-auto",format:2,version:VERSION,exporte:new Date().toISOString().slice(0,16),vehicule:S.veh,echeances:S.ech,reglages:S.prefs,pleins:S.pleins.map(st),entretiens:S.entretiens.map(st),pieces:S.pieces.map(st)};}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(snapshot()));return true;}catch(e){toast("Impossible d'enregistrer sur ce téléphone");return false;}}
 function applyData(d){
   const m=a=>(Array.isArray(a)?a:[]).map(x=>{const {id,...r}=x||{};return{...r,_id:id||uid()};});
@@ -695,6 +670,7 @@ function applyData(d){
 }
 async function save(col,id,data){const _id=id||uid();const arr=S[col].slice();const i=arr.findIndex(x=>x._id===_id);const rec={...data,_id};if(i>=0)arr[i]=rec;else arr.push(rec);const prev=S[col];S[col]=arr;if(!persist()){S[col]=prev;return false;}renderAll();return true;}
 async function del(col,id){const prev=S[col];S[col]=S[col].filter(x=>x._id!==id);if(!persist()){S[col]=prev;return false;}renderAll();return true;}
+function backupLate(){const has=S.pleins.length||S.entretiens.length;const lb=lastBackup();const every=num(S.prefs.rappel);return !!has&&every>0&&(!lb||(Date.now()-new Date(lb))/864e5>every);}
 function lastBackup(){try{return localStorage.getItem(KEY_BK);}catch(e){return null;}}
 function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,2000);}
 
@@ -812,7 +788,7 @@ async function exportFile(name,data,type){
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);return true;
 }
 async function backupNow(){
-  const ok=await exportFile("sauvegarde-carnet-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(snapshot(),null,1),"application/json");
+  const ok=await exportFile("sauvegarde-carnet-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(snapshot(true),null,1),"application/json");
   if(ok){try{localStorage.setItem(KEY_BK,new Date().toISOString());}catch(e){}renderAll();toast("Sauvegarde créée");}
 }
 const csv=rows=>"﻿"+rows.map(r=>r.map(v=>{const s=v==null?"":String(v);return /[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(";")).join("\r\n");
@@ -828,142 +804,79 @@ function importText(txt,name){
   let d=null;try{d=JSON.parse(String(txt||"").replace(/^﻿/,"").trim());}catch(err){}
   if(!d||d.app!=="carnet-auto"){sheet("Fichier non reconnu",`<p style="margin:0 6px 8px">« ${esc(name||"fichier")} » n'est pas une sauvegarde de cette application.</p><p class="muted" style="margin:0 6px 14px;font-size:15px">Choisis le fichier dont le nom commence par <b>sauvegarde-carnet</b> et finit par <b>.json</b>.</p><div class="btns"><button class="btn primary" data-close type="button">OK</button></div>`);$(".btns [data-close]").addEventListener("click",closeSheet);return;}
   const n=k=>Array.isArray(d[k])?d[k].length:0;const has=S.pleins.length||S.entretiens.length;
-  sheet("Restaurer la sauvegarde ?",`<div class="fgroup"><div class="frow"><span class="l">Date</span><span style="flex:1;text-align:right">${esc(fd(String(d.exporte||"").slice(0,10)))}</span></div>${d.vehicule&&d.vehicule.modele?`<div class="frow"><span class="l">Véhicule</span><span style="flex:1;text-align:right">${esc((d.vehicule.marque||"")+" "+d.vehicule.modele)}</span></div>`:""}<div class="frow"><span class="l">Contenu</span><span style="flex:1;text-align:right">${n("pleins")} pleins · ${n("entretiens")} entretiens · ${n("pieces")} pièces</span></div></div>
+  sheet("Restaurer la sauvegarde ?",`<div class="fgroup"><div class="frow"><span class="l">Date</span><span style="flex:1;text-align:right">${esc(fd(String(d.exporte||"").slice(0,10)))}</span></div>${d.vehicule&&d.vehicule.modele?`<div class="frow"><span class="l">Véhicule</span><span style="flex:1;text-align:right">${esc((d.vehicule.marque||"")+" "+d.vehicule.modele)}</span></div>`:""}<div class="frow"><span class="l">Contenu</span><span style="flex:1;text-align:right">${n("pleins")} pleins · ${n("entretiens")} entretiens · ${n("pieces")} pièces${d.photo?" · photo":""}</span></div></div>
     ${has?'<div class="msg w">Elle remplacera les données actuelles de ce téléphone.</div>':""}<div class="btns"><button class="btn primary" id="imp-ok" type="button">${has?"Remplacer mes données":"Restaurer"}</button></div>`,()=>{
     $("#imp-ok").addEventListener("click",()=>{const prev=snapshot();const keepPrefs=!d.reglages;const prefs=S.prefs;applyData(d);if(keepPrefs)S.prefs=prefs;
-      if(persist()){closeSheet();applyTheme();Car3D.color(COLORS[S.prefs.couleur]?.[1]??COLORS.noir[1]);Car3D.anim(S.prefs.anim);renderAll();go("home");toast("Données restaurées");}else{applyData(prev);renderAll();}});
+      if(persist()){if(d.photo)setPhoto(d.photo);closeSheet();applyTheme();renderAll();go("home");toast("Données restaurées");}else{applyData(prev);renderAll();}});
   });
 }
 
-/* ---------- Voiture 3D (moteur maison, low-poly isométrique) ---------- */
-const Car3D=(()=>{
-  const PITCH=0.5;                       // inclinaison de la caméra (~29°)
-  const L=norm3([-0.35,0.85,0.45]);      // lumière principale (repère caméra)
-  const L2=norm3([0.55,0.7,0.35]);       // boîte à lumière pour les reflets
-  let ctx=null,cv=null,parts=[],paintRGB=[12,13,16],rot=-0.75,vel=0,drag=null,idleUntil=0,last=0,autoRot=true,running=false,raf=0,visible=true,dark=false,W=0,H=0,dpr=1;
-  function norm3(v){const l=Math.hypot(v[0],v[1],v[2])||1;return[v[0]/l,v[1]/l,v[2]/l];}
-  function hexRGB(h){return[(h>>16)&255,(h>>8)&255,h&255];}
-  // --- géométrie ---
-  function quad(p0,c,p1,n){const o=[];for(let i=1;i<=n;i++){const t=i/n,u=1-t;o.push([u*u*p0[0]+2*u*t*c[0]+t*t*p1[0],u*u*p0[1]+2*u*t*c[1]+t*t*p1[1]]);}return o;}
-  function area(P){let a=0;for(let i=0;i<P.length;i++){const p=P[i],q=P[(i+1)%P.length];a+=p[0]*q[1]-q[0]*p[1];}return a/2;}
-  function inset(P,c){const n=P.length;return P.map((p,i)=>{const a=P[(i-1+n)%n],b=P[(i+1)%n];
-    const e1=norm3([p[0]-a[0],p[1]-a[1],0]),e2=norm3([b[0]-p[0],b[1]-p[1],0]);const n1=[e1[1],-e1[0]],n2=[e2[1],-e2[0]];
-    let m=[n1[0]+n2[0],n1[1]+n2[1]];const ml=Math.hypot(m[0],m[1])||1;m=[m[0]/ml,m[1]/ml];const k=Math.min(2,1/Math.max(.35,m[0]*n1[0]+m[1]*n1[1]));
-    return[p[0]-m[0]*c*k,p[1]-m[1]*c*k];});}
-  // prisme extrudé le long de z, avec chanfrein
-  function prism(P,zc,width,ch,mat,bias){
-    if(area(P)<0)P=P.slice().reverse();
-    const h=width/2,c=Math.min(ch||0,h*.45);const rings=c>0?[[inset(P,c),zc-h],[P,zc-h+c],[P,zc+h-c],[inset(P,c),zc+h]]:[[P,zc-h],[P,zc+h]];
-    const F=[];const R=rings.map(([Q,z])=>Q.map(q=>[q[0],q[1],z]));const n=P.length;
-    for(let r=0;r<R.length-1;r++)for(let i=0;i<n;i++){const j=(i+1)%n;F.push([R[r][i],R[r][j],R[r+1][j],R[r+1][i]]);}
-    F.push(R[R.length-1].slice());F.push(R[0].slice().reverse());
-    return{faces:F.map(f=>({v:f,n:newell(f)})),mat,bias:bias||0};
-  }
-  function newell(f){let x=0,y=0,z=0;for(let i=0;i<f.length;i++){const a=f[i],b=f[(i+1)%f.length];x+=(a[1]-b[1])*(a[2]+b[2]);y+=(a[2]-b[2])*(a[0]+b[0]);z+=(a[0]-b[0])*(a[1]+b[1]);}return norm3([x,y,z]);}
-  const rect=(x0,y0,x1,y1)=>[[x0,y0],[x1,y0],[x1,y1],[x0,y1]];
-  const circle=(cx,cy,r,n,a0)=>{const o=[];for(let i=0;i<n;i++){const a=(a0||0)+i/n*Math.PI*2;o.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r]);}return o;};
-  function build(){
-    const Wd=1.76,WB=1.31,WR=.335,AR=.45,cy=WR;const P=[];
-    P.push([-2.05,.25]);
-    const arch=cx=>{const a=Math.asin((cy-.25)/AR);for(let i=0;i<=16;i++){const t=Math.PI+a-(Math.PI+2*a)*i/16;P.push([cx+Math.cos(t)*AR,cy+Math.sin(t)*AR]);}};
-    arch(-WB);arch(WB);P.push([2.04,.25]);
-    P.push(...quad([2.04,.25],[2.2,.27],[2.2,.46],4));P.push([2.17,.64]);P.push(...quad([2.17,.64],[2.12,.76],[1.98,.79],3));
-    P.push([1.45,.89]);P.push(...quad([1.45,.89],[1.05,.95],[.9,.99],3));P.push([-1.98,1.0]);
-    P.push(...quad([-1.98,1.0],[-2.14,.96],[-2.16,.82],3));P.push([-2.19,.5]);P.push(...quad([-2.19,.5],[-2.18,.27],[-2.07,.25],3).slice(0,-1));
-    const out=[];
-    out.push(prism(P,0,Wd,.075,"paint"));
-    const cab=[[-1.98,.985],[.92,.985],...quad([.92,.985],[.4,1.33],[.2,1.4],4),...quad([.2,1.4],[.06,1.425],[-.1,1.425],2),[-1.15,1.425],...quad([-1.15,1.425],[-1.62,1.38],[-1.8,1.2],4),[-1.95,1.04]];
-    out.push(prism(cab,0,1.44,.09,"glass",.01));
-    out.push(prism([[-1.52,1.39],[.18,1.405],[.26,1.43],[.04,1.462],[-1.15,1.462],[-1.58,1.4]],0,1.34,.05,"paint",.04));
-    out.push(prism([[-1.98,.99],[-1.66,.99],[-1.47,1.16],[-1.4,1.395],[-1.62,1.37],[-1.81,1.2],[-1.95,1.05]],0,1.48,.06,"paint",.03));
-    [-1,1].forEach(s=>out.push(prism([[-.44,.99],[-.34,.99],[-.29,1.39],[-.39,1.39]],s*.73,.04,0,"trim",.04)));
-    [-WB,WB].forEach(x=>out.push(prism(rect(x-.44,.27,x+.44,.72),0,Wd-.3,0,"trim",-.02)));
-    out.push(prism(rect(-WB+.47,.22,WB-.47,.33),0,Wd+.02,.03,"trim",.005));
-    out.push(prism([[2.13,.33],[2.215,.36],[2.21,.55],[2.15,.56]],0,1.0,.04,"trim",.02));
-    out.push(prism([[-2.215,.33],[-2.13,.33],[-2.13,.44],[-2.215,.45]],0,1.25,.03,"trim",.02));
-    [-1,1].forEach(s=>{
-      out.push(prism([[1.9,.775],[2.1,.725],[2.15,.745],[1.93,.805]],s*.6,.3,.02,"head",.03));
-      out.push(prism([[-2.19,.83],[-2.11,.83],[-2.09,.94],[-2.17,.93]],s*.58,.44,.03,"tail",.03));
-      out.push(prism(rect(.66,.99,.86,1.1),s*.95,.16,.03,"paint",.02));
-      [-.2,.62].forEach(x=>out.push(prism(rect(x-.08,.885,x+.08,.915),s*(Wd/2+.08),.03,0,"trim",.02)));
+/* ---------- Photo de la voiture ---------- */
+function getPhoto(){try{return localStorage.getItem(KEY_PHOTO);}catch(e){return null;}}
+function setPhoto(url){try{if(url)localStorage.setItem(KEY_PHOTO,url);else localStorage.removeItem(KEY_PHOTO);return true;}catch(e){toast("Photo trop lourde pour être enregistrée");return false;}}
+function renderPhoto(){const ph=getPhoto();$("#photo").hidden=!ph;$("#photo-empty").hidden=!!ph;if(ph&&$("#photo-img").getAttribute("src")!==ph)$("#photo-img").src=ph;}
+const loadImg=f=>new Promise((ok,ko)=>{const u=URL.createObjectURL(f);const i=new Image();i.onload=()=>{ok(i);setTimeout(()=>URL.revokeObjectURL(u),1000);};i.onerror=()=>ko(new Error("img"));i.src=u;});
+function removeBackground(cx,w,h){
+  const im=cx.getImageData(0,0,w,h),d=im.data;const px=(x,y)=>(y*w+x)*4;
+  const corners=[[0,0],[w-1,0],[0,h-1],[w-1,h-1]].map(([x,y])=>{const i=px(x,y);return[d[i],d[i+1],d[i+2]];});
+  const ref=corners.reduce((a,c)=>[a[0]+c[0]/4,a[1]+c[1]/4,a[2]+c[2]/4],[0,0,0]);
+  const spread=Math.max(...corners.map(c=>Math.abs(c[0]-ref[0])+Math.abs(c[1]-ref[1])+Math.abs(c[2]-ref[2])));
+  if(spread>60||(ref[0]+ref[1]+ref[2])/3<170)return false;   // fond pas uni / trop sombre : on ne touche à rien
+  const tol=48,seen=new Uint8Array(w*h),st=[];const refL=(ref[0]+ref[1]+ref[2])/3;
+  // fond franc -> transparent ; gris neutre clair (ombre portée) -> semi-transparent
+  const test=(x,y)=>{const i=px(x,y);const r=d[i],g=d[i+1],b=d[i+2];if(Math.abs(r-ref[0])+Math.abs(g-ref[1])+Math.abs(b-ref[2])<tol)return 0;
+    const l=(r+g+b)/3,sat=Math.max(r,g,b)-Math.min(r,g,b);if(sat<22&&l>115&&y>h*.6)return Math.min(255,Math.max(0,(refL-l)/(refL-115)*255*.85));return -1;};
+  for(let x=0;x<w;x++){st.push(x,0,x,h-1);}for(let y=0;y<h;y++){st.push(0,y,w-1,y);}
+  while(st.length){const y=st.pop(),x=st.pop();const k=y*w+x;if(seen[k])continue;const t=test(x,y);if(t<0)continue;seen[k]=1;
+    if(t>0){const i=k*4;d[i]=d[i+1]=d[i+2]=0;d[i+3]=t;}else d[k*4+3]=0;
+    if(x>0)st.push(x-1,y);if(x<w-1)st.push(x+1,y);if(y>0)st.push(x,y-1);if(y<h-1)st.push(x,y+1);}
+  // adoucit le contour
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const k=y*w+x;if(seen[k])continue;const z=i=>seen[i]&&d[i*4+3]===0?1:0;const n=z(k-1)+z(k+1)+z(k-w)+z(k+w);if(n)d[k*4+3]=Math.round(d[k*4+3]*(1-n/5));}
+  cx.putImageData(im,0,0);return true;
+}
+function trimCanvas(c){const cx=c.getContext("2d");const {width:w,height:h}=c;const d=cx.getImageData(0,0,w,h).data;let x0=w,y0=h,x1=-1,y1=-1;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
+  if(x1<0)return c;const o=document.createElement("canvas");o.width=x1-x0+1;o.height=y1-y0+1;o.getContext("2d").drawImage(c,x0,y0,o.width,o.height,0,0,o.width,o.height);return o;}
+$("#photo-file").addEventListener("change",async e=>{const f=e.target.files&&e.target.files[0];e.target.value="";if(!f)return;
+  try{const img=await loadImg(f);const sc=Math.min(1,1100/Math.max(img.naturalWidth,img.naturalHeight));const w=Math.round(img.naturalWidth*sc),h=Math.round(img.naturalHeight*sc);
+    let c=document.createElement("canvas");c.width=w;c.height=h;const cx=c.getContext("2d");cx.drawImage(img,0,0,w,h);
+    let transparent=f.type==="image/png";
+    if(S.prefs.detour!==false&&removeBackground(cx,w,h)){transparent=true;c=trimCanvas(c);}
+    const url=transparent?c.toDataURL("image/png"):c.toDataURL("image/jpeg",.86);
+    if(setPhoto(url)){renderAll();toast("Photo enregistrée");}
+  }catch(err){toast("Impossible de lire cette image");}
+});
+$("#photo-del").addEventListener("click",()=>{setPhoto(null);renderAll();toast("Photo retirée");});
+
+/* ---------- Icône personnalisée ---------- */
+$("#icon-file").addEventListener("change",async e=>{const f=e.target.files&&e.target.files[0];e.target.value="";if(!f)return;
+  let img;try{img=await loadImg(f);}catch(err){toast("Impossible de lire cette image");return;}
+  const make=(size,pad)=>{const c=document.createElement("canvas");c.width=c.height=size;const cx=c.getContext("2d");
+    const iw=img.naturalWidth,ih=img.naturalHeight;const corner=document.createElement("canvas");corner.width=corner.height=1;const k=corner.getContext("2d");k.drawImage(img,0,0,1,1,0,0,1,1);const bg=k.getImageData(0,0,1,1).data;
+    cx.fillStyle=`rgb(${bg[0]},${bg[1]},${bg[2]})`;cx.fillRect(0,0,size,size);
+    const inner=size*(1-2*pad);const s=Math.min(inner/iw,inner/ih);const dw=iw*s,dh=ih*s;cx.drawImage(img,(size-dw)/2,(size-dh)/2,dw,dh);return c;};
+  const files=[["icon-180.png",make(180,.06)],["icon-192.png",make(192,.06)],["icon-512.png",make(512,.06)],["icon-512-maskable.png",make(512,.16)]];
+  const blobs=await Promise.all(files.map(([n,c])=>new Promise(ok=>c.toBlob(b=>ok(new File([b],n,{type:"image/png"})),"image/png"))));
+  sheet("Ta nouvelle icône",`<div style="display:flex;justify-content:center;margin:4px 0 16px"><img src="${files[0][1].toDataURL()}" style="width:96px;height:96px;border-radius:22px;box-shadow:0 4px 14px rgba(0,0,0,.25)" alt=""></div>
+    <div class="fgroup" style="padding:12px 16px;font-size:15px;line-height:1.5">
+      <b>1.</b> Touche « Enregistrer les fichiers » et range les 4 images dans Fichiers.<br>
+      <b>2.</b> Sur GitHub, dépose-les dans ton dépôt (Add file › Upload files) pour remplacer les anciennes, puis Commit changes.<br>
+      <b>3.</b> Fais une sauvegarde de tes données (Réglages › Sauvegarde).<br>
+      <b>4.</b> Supprime l'appli de l'écran d'accueil, rouvre le site dans Safari et refais « Sur l'écran d'accueil ».<br>
+      <b>5.</b> Ouvre l'appli et restaure ta sauvegarde.</div>
+    <div class="msg w">Sur iPhone, supprimer l'appli efface ses données : ne saute pas l'étape 3.</div>
+    <div class="btns"><button class="btn primary" id="icon-save" type="button">Enregistrer les fichiers</button></div>`,()=>{
+    $("#icon-save").addEventListener("click",async()=>{
+      try{if(navigator.canShare&&navigator.canShare({files:blobs})){await navigator.share({files:blobs});return;}}catch(err){if(err&&err.name==="AbortError")return;}
+      for(const b of blobs){const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=b.name;document.body.appendChild(a);a.click();a.remove();await new Promise(r=>setTimeout(r,400));}
     });
-    [[-WB,1],[-WB,-1],[WB,1],[WB,-1]].forEach(([x,s])=>{const z=s*(Wd/2-.1);
-      out.push(prism(circle(x,cy,WR,22),z,.23,.05,"rubber"));
-      out.push(prism(circle(x,cy,.235,22),z+s*.1,.03,0,"rim",.005));
-      for(let i=0;i<5;i++){const a=i/5*Math.PI*2+.3;const ca=Math.cos(a),sa=Math.sin(a);
-        const sp=[[-.025,.04],[.025,.04],[.03,.21],[-.03,.21]].map(([u,v])=>[x+u*ca-v*sa,cy+u*sa+v*ca]);out.push(prism(sp,z+s*.12,.025,0,"spoke",.008));}
-      out.push(prism(circle(x,cy,.06,10),z+s*.125,.03,0,"spoke",.01));
-    });
-    return out;
-  }
-  // --- rendu ---
-  function shade(mat,n){
-    const d=Math.max(0,n[0]*L[0]+n[1]*L[1]+n[2]*L[2]);
-    const r=[2*n[2]*n[0],2*n[2]*n[1],2*n[2]*n[2]-1];
-    const spec=Math.pow(Math.max(0,r[0]*L2[0]+r[1]*L2[1]+r[2]*L2[2]),18);
-    const horizon=Math.exp(-Math.pow((r[1]-.08)/.09,2));
-    const sky=.5+.5*n[1];const fres=Math.pow(1-Math.max(0,n[2]),2);
-    let base,amb,dif,refl;
-    switch(mat){
-      case"paint":base=paintRGB;amb=.34;dif=.62;refl=.05+.32*sky*fres+.95*spec+.42*horizon+.1*Math.max(0,n[1]);break;
-      case"glass":base=[26,38,52];amb=.55;dif=.35;refl=.07+.38*sky*fres+1.1*spec+.5*horizon;break;
-      case"trim":base=[16,16,18];amb=.6;dif=.4;refl=.03+.06*sky;break;
-      case"rubber":base=[22,23,25];amb=.55;dif=.45;refl=.02+.03*sky;break;
-      case"rim":base=[150,155,162];amb=.45;dif=.55;refl=.2*spec+.15*horizon;break;
-      case"spoke":base=[40,42,46];amb=.6;dif=.4;refl=.05;break;
-      case"head":return"rgb(232,242,255)";
-      case"tail":return n[0]<-.3?"rgb(225,30,40)":"rgb(150,14,22)";
-      default:base=[128,128,128];amb=.5;dif=.5;refl=0;
-    }
-    const k=amb+dif*d;const w=255*Math.min(1,refl);
-    return`rgb(${Math.min(255,base[0]*k+w)|0},${Math.min(255,base[1]*k+w)|0},${Math.min(255,base[2]*k+w)|0})`;
-  }
-  function draw(){
-    if(!ctx)return;const cs=Math.cos(rot),sn=Math.sin(rot),cp=Math.cos(PITCH),sp=Math.sin(PITCH);
-    const sc=Math.min(W/5.5,H/3.25),ox=W/2,oy=H*.6;
-    const tr=v=>{const x1=v[0]*cs+v[2]*sn,z1=-v[0]*sn+v[2]*cs;return[x1,v[1]*cp-z1*sp,v[1]*sp+z1*cp];};
-    const pr=t=>[ox+t[0]*sc,oy-t[1]*sc];
-    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
-    // ombre au sol
-    const o=pr(tr([0,0,0])),ax=pr(tr([2.75,0,0])),bz=pr(tr([0,0,1.3]));
-    ctx.save();ctx.setTransform(dpr*(ax[0]-o[0]),dpr*(ax[1]-o[1]),dpr*(bz[0]-o[0]),dpr*(bz[1]-o[1]),dpr*o[0],dpr*o[1]);
-    const g=ctx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,dark?"rgba(0,0,0,.85)":"rgba(0,0,0,.42)");g.addColorStop(.6,dark?"rgba(0,0,0,.45)":"rgba(0,0,0,.16)");g.addColorStop(1,"rgba(0,0,0,0)");
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);ctx.fill();ctx.restore();
-    const list=[];
-    for(const p of parts)for(const f of p.faces){const n=tr(f.n);if(n[2]<=1e-4)continue;let dz=0;const pts=f.v.map(v=>{const t=tr(v);dz+=t[2];return pr(t);});list.push([dz/f.v.length+p.bias,pts,shade(p.mat,n)]);}
-    list.sort((a,b)=>a[0]-b[0]);ctx.lineJoin="round";ctx.lineWidth=.8;
-    for(const [,pts,col] of list){ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.closePath();ctx.fillStyle=col;ctx.strokeStyle=col;ctx.fill();ctx.stroke();}
-  }
-  function frame(t){raf=0;if(!running||document.hidden||!visible)return;const dt=Math.min(50,t-(last||t));last=t;let more=false;
-    if(!drag){if(Math.abs(vel)>.0005){rot+=vel;vel*=.93;more=true;}else if(autoRot&&t>idleUntil&&!matchMedia("(prefers-reduced-motion: reduce)").matches){rot+=dt*.00025;more=true;}}
-    draw();if(more||drag)request();}
-  function request(){if(!raf&&running&&ctx)raf=requestAnimationFrame(frame);}
-  function resize(){if(!cv)return;dpr=Math.min(window.devicePixelRatio||1,3);W=cv.clientWidth||360;H=cv.clientHeight||260;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);draw();}
-  function init(){
-    cv=$("#car3d");ctx=cv.getContext("2d");if(!ctx)return;parts=build();resize();
-    cv.addEventListener("pointerdown",e=>{drag={x:e.clientX,y:e.clientY,rot,lock:null,lt:performance.now()};vel=0;$("#hint").style.opacity=0;});
-    window.addEventListener("pointermove",e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
-      if(drag.lock===null&&Math.hypot(dx,dy)>6){drag.lock=Math.abs(dx)>Math.abs(dy)?"x":"y";if(drag.lock==="x")cv.setPointerCapture?.(e.pointerId);}
-      if(drag.lock!=="x")return;const nr=drag.rot+dx*.012;const now=performance.now();vel=(nr-rot)/Math.max(8,now-drag.lt)*16;drag.lt=now;rot=nr;request();});
-    const end=()=>{if(!drag)return;drag=null;idleUntil=performance.now()+2500;request();};
-    window.addEventListener("pointerup",end);window.addEventListener("pointercancel",end);
-    if("IntersectionObserver" in window)new IntersectionObserver(es=>{visible=es[0].isIntersecting;if(visible)request();},{threshold:.05}).observe($("#stage"));
-    document.addEventListener("visibilitychange",()=>{if(!document.hidden)request();});
-  }
-  function start(){if(!ctx)init();running=true;last=0;request();}
-  function stop(){running=false;if(raf)cancelAnimationFrame(raf);raf=0;}
-  function color(hex){paintRGB=hexRGB(hex);draw();}
-  function theme(d){dark=!!d;draw();}
-  function anim(on){autoRot=!!on;request();}
-  function setRot(r){rot=r;draw();}
-  return{start,stop,color,theme,anim,resize,setRot,draw};
-})();
+  });
+});
 
 /* ---------- Démarrage ---------- */
 function boot(){
   try{const raw=localStorage.getItem(KEY);if(raw)applyData(JSON.parse(raw));}catch(e){const b=$("#banner");b.textContent="Impossible de lire les données enregistrées sur ce téléphone.";b.hidden=false;}
-  Car3D.color((COLORS[S.prefs.couleur]||COLORS.noir)[1]);Car3D.anim(S.prefs.anim);applyTheme();renderAll();go(location.hash.slice(1)||"home");
-  setTimeout(()=>{$("#hint").style.opacity=0;},6000);
+  applyTheme();renderAll();go(location.hash.slice(1)||"home");
   try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist();}catch(e){}
   if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
 }
