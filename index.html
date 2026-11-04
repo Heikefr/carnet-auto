@@ -357,6 +357,10 @@ label.btn{cursor:pointer}
   <div class="sec-h"><span>Apparence</span></div>
   <div class="group"><div class="row"><div class="seg" id="theme-seg"><button data-theme-v="auto">Automatique</button><button data-theme-v="light">Clair</button><button data-theme-v="dark">Sombre</button></div></div></div>
 
+  <div class="sec-h"><span>Calendrier</span></div>
+  <div class="group"><button class="row link-row" data-act="calendar"><div class="body"><div class="t">Ajouter les dates clés au calendrier</div><div class="s" id="cal-next"></div></div></button></div>
+  <div class="sec-f">Contrôle technique, échéance de l'assurance et rappel pour la renégocier. Aussi disponible dans Accueil › Véhicule › Dates clés.</div>
+
   <div class="sec-h"><span>Photo de la voiture</span></div>
   <div class="group">
     <div class="row"><img class="thumb" id="photo-thumb" alt="" hidden><div class="body"><div class="t" id="photo-state">Aucune photo</div></div></div>
@@ -418,6 +422,9 @@ label.btn{cursor:pointer}
     <button class="row danger" id="wipe"><div class="body"><div class="t">Effacer toutes les données</div></div></button>
   </div>
   <div class="sec-f" id="wipe-f"></div>
+
+  <div class="sec-h"><span>Nouveautés</span></div>
+  <div class="group" id="changelog"></div>
 </section>
 </div>
 
@@ -444,7 +451,7 @@ label.btn{cursor:pointer}
 <script>
 (function(){
 "use strict";
-const VERSION="2.2";
+const VERSION="2.3";
 const FUELS=["SP95 E10","SP98","E85","SP95","Gazole"];
 const DEFAULT_ECH={seuilKm:2000,seuilJours:30,items:[{nom:"Vidange Moteur",mois:12,km:25000},{nom:"Liquide de frein",mois:24,km:30000},{nom:"Liquide de refroidissement",mois:60,km:90000},{nom:"Filtre d'habitacle",mois:12,km:25000},{nom:"Bougies d'allumage",mois:72,km:90000},{nom:"Filtre à air moteur",mois:48,km:48000},{nom:"Disque de frein avant",mois:60,km:90000},{nom:"Pneu avant",mois:48,km:50000},{nom:"Pneu arrière",mois:48,km:25000},{nom:"Contrôle technique",mois:24,km:null}]};
 const DEFAULT_PREFS={theme:"auto",carburant:"auto",station:"",rappel:30,detour:true,seuil:.25,decote:null};
@@ -559,6 +566,19 @@ function renderHealth(){
   if(consoLvl==="warn")notes.push("La consommation augmente de plus de 10 % : sur une hybride, c'est souvent le premier signe d'usure (pneus, freins qui frottent, batterie hybride).");
   if(!y.dec)notes.push("Perte de valeur non incluse : tu peux l'ajouter dans Réglages.");
   $("#health-f").textContent=notes.join(" ");
+}
+
+/* ---------- Journal des versions ---------- */
+const CHANGELOG=[
+  ["2.3","4 nov. 2026",["Raccourci « Ajouter les dates clés au calendrier » dans les Réglages","Journal des nouveautés en bas des Réglages"]],
+  ["2.2","4 nov. 2026",["Indicateur « Santé de la voiture » dans Coûts : coût au km sur 12 mois, verdict, tendance sur 3 mois","Suivi des pannes : chaque entretien peut être marqué « Panne / réparation »","Alerte si la consommation augmente de plus de 10 %","Coût acceptable et perte de valeur réglables","Dates clés (contrôle technique, assurance, renégociation) et ajout au calendrier dans Véhicule"]],
+  ["2.1","3 nov. 2026",["Photo de la voiture sur l'accueil, avec retrait automatique du fond uni","Création d'une icône personnalisée","Accueil épuré : plus de bandeau « Dernier plein » ni de boutons ronds","Nouvelle icône"]],
+  ["2.0","3 nov. 2026",["Style iOS : verre dépoli, barre d'onglets flottante, bouton +","Accueil façon tableau de bord de véhicule","Page Réglages, thème clair, sombre ou automatique","Onglet Coûts séparé"]],
+  ["1.1","3 nov. 2026",["Restauration de sauvegarde fiabilisée sur iPhone"]],
+  ["1.0","3 nov. 2026",["Première version : pleins, entretiens, échéances, coût total, sauvegarde et export CSV"]]
+];
+function renderChangelog(){
+  $("#changelog").innerHTML=CHANGELOG.map(([v,d,items],i)=>`<details class="row" style="display:block" ${i===0?"open":""}><summary style="list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px"><span class="t" style="flex:1"><span>Version ${v}</span>${v===VERSION?'<span class="pill s-ok">Installée</span>':""}</span><span class="v" style="font-size:15px">${d}</span></summary><ul style="margin:8px 0 2px;padding-left:20px;color:var(--ink-2);font-size:15px;line-height:1.45">${items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>`).join("");
 }
 
 /* ---------- Dates clés & calendrier ---------- */
@@ -728,7 +748,7 @@ function renderReglages(){
   if(document.activeElement!==$("#seuil-km"))$("#seuil-km").value=S.ech.seuilKm??2000;
   if(document.activeElement!==$("#seuil-j"))$("#seuil-j").value=S.ech.seuilJours??30;
   const lb=lastBackup();$("#last-backup").textContent=lb?"dernière "+ago(lb):"jamais faite";
-  $("#about-v").textContent=VERSION;$("#about-d").textContent=`${S.pleins.length} pleins · ${S.entretiens.length} entretiens`;
+  $("#about-v").textContent=VERSION;renderChangelog();{const k=keyDates();$("#cal-next").textContent=k.length?"Prochaine : "+k[0].title+" le "+fd(k[0].date):"Renseigne la date d'effet de l'assurance";}$("#about-d").textContent=`${S.pleins.length} pleins · ${S.entretiens.length} entretiens`;
 }
 function renderMeta(){
   const has=S.pleins.length||S.entretiens.length||S.veh.marque;$("#welcome").hidden=!!has;
