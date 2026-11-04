@@ -152,6 +152,25 @@ button.row:active,.row.tap:active{background:var(--card-2)}
 .bar{height:5px;border-radius:3px;background:var(--card-2);overflow:hidden;margin-top:7px}
 .bar span{display:block;height:100%;border-radius:3px}
 .b-bad{background:var(--red)} .b-warn{background:var(--orange)} .b-ok{background:var(--green)}
+.health{background:var(--card);border-radius:var(--r-card);padding:18px 16px 6px}
+.health .top{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.health .big{font-family:var(--f-r);font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.health .big small{font-size:17px;color:var(--muted);font-weight:600;margin-left:4px;letter-spacing:0}
+.health .verdict{font-size:15px;font-weight:600;padding:6px 12px;border-radius:999px;white-space:nowrap}
+.health .sub{font-size:13px;color:var(--muted);margin-top:6px}
+.meter{position:relative;height:10px;border-radius:5px;margin:16px 0 4px;display:flex;overflow:visible;gap:2px}
+.meter span{height:100%}
+.meter span:first-child{border-radius:5px 0 0 5px}.meter span:nth-child(3){border-radius:0 5px 5px 0}
+.meter i{position:absolute;top:-5px;width:4px;height:20px;border-radius:2px;background:var(--ink);box-shadow:0 0 0 2px var(--card);transform:translateX(-2px)}
+.meter-l{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;margin-bottom:6px}
+.health .row{padding-inline:0}
+.health .row+.row::before{left:0}
+.row .v.trend-up{color:var(--red)} .row .v.trend-down{color:var(--green)} .row .v.trend-flat{color:var(--muted)}
+.chip.panne{background:var(--red-soft);color:var(--red)}
+.cal-ev{display:flex;align-items:center;gap:12px}
+.cal-ev .d{width:46px;flex:none;text-align:center;border-radius:10px;background:var(--card-2);padding:4px 0;line-height:1.1}
+.cal-ev .d b{display:block;font-size:20px}
+.cal-ev .d span{font-size:11px;color:var(--red);text-transform:uppercase;font-weight:700}
 .due .row{align-items:flex-start;flex-wrap:wrap;padding-block:12px}
 .due .row .pill{margin-top:1px}
 
@@ -302,6 +321,10 @@ label.btn{cursor:pointer}
 <!-- ============ COÛTS ============ -->
 <section class="view" id="v-couts" data-title="Coûts" hidden>
   <div class="lt"><h1>Coûts</h1></div>
+  <div class="sec-h" style="padding-top:4px"><span>Santé de la voiture</span></div>
+  <div class="health" id="health"></div>
+  <div class="sec-f" id="health-f"></div>
+  <div class="sec-h"><span>Depuis le début</span></div>
   <div class="kpis" id="kpis"></div>
   <div class="sec-h"><span>Dépenses par mois</span></div>
   <div class="panel"><div class="chart" id="chart-month"></div><div class="legend"><span><i style="background:var(--c-fuel)"></i>Carburant</span><span><i style="background:var(--c-maint)"></i>Entretien</span></div></div>
@@ -320,6 +343,10 @@ label.btn{cursor:pointer}
   <div class="group" id="tyres"></div>
   <div class="sec-h"><span>Assurance</span><button data-edit="ins">Modifier</button></div>
   <div class="group" id="kv-ins"></div>
+  <div class="sec-h"><span>Dates clés</span></div>
+  <div class="group" id="key-dates"></div>
+  <div class="group" style="margin-top:10px"><button class="row link-row" data-act="calendar"><div class="body"><div class="t">Ajouter au calendrier</div></div></button></div>
+  <div class="sec-f">Ajoute le contrôle technique et l'échéance de l'assurance dans un calendrier à part, avec un rappel pour renégocier ton contrat à temps.</div>
 </section>
 
 <!-- ============ RÉGLAGES ============ -->
@@ -361,6 +388,13 @@ label.btn{cursor:pointer}
     <div class="row"><div class="body"><div class="t">ou avant</div></div><input class="inline-in" id="seuil-j" inputmode="numeric" style="max-width:60px"><span class="muted">jours</span></div>
   </div>
   <div class="sec-f">Laisse « km » vide pour une échéance uniquement en date, comme le contrôle technique.</div>
+
+  <div class="sec-h"><span>Indicateur de coût</span></div>
+  <div class="group">
+    <div class="row"><div class="body"><div class="t">Coût acceptable</div></div><input class="inline-in" id="pref-seuil" inputmode="decimal" style="max-width:80px"><span class="muted">€/km</span></div>
+    <div class="row"><div class="body"><div class="t">Perte de valeur</div><div class="s">Laisse vide pour ne pas l'inclure</div></div><input class="inline-in" id="pref-decote" inputmode="numeric" placeholder="—" style="max-width:80px"><span class="muted">€/an</span></div>
+  </div>
+  <div class="sec-f">Le coût de la voiture comprend le carburant, l'entretien, les réparations, l'assurance et, si tu la renseignes, sa perte de valeur. Pour l'estimer : cote actuelle moins cote dans un an.</div>
 
   <div class="sec-h"><span>Sauvegarde</span><span id="last-backup"></span></div>
   <div class="group">
@@ -410,10 +444,10 @@ label.btn{cursor:pointer}
 <script>
 (function(){
 "use strict";
-const VERSION="2.1";
+const VERSION="2.2";
 const FUELS=["SP95 E10","SP98","E85","SP95","Gazole"];
 const DEFAULT_ECH={seuilKm:2000,seuilJours:30,items:[{nom:"Vidange Moteur",mois:12,km:25000},{nom:"Liquide de frein",mois:24,km:30000},{nom:"Liquide de refroidissement",mois:60,km:90000},{nom:"Filtre d'habitacle",mois:12,km:25000},{nom:"Bougies d'allumage",mois:72,km:90000},{nom:"Filtre à air moteur",mois:48,km:48000},{nom:"Disque de frein avant",mois:60,km:90000},{nom:"Pneu avant",mois:48,km:50000},{nom:"Pneu arrière",mois:48,km:25000},{nom:"Contrôle technique",mois:24,km:null}]};
-const DEFAULT_PREFS={theme:"auto",carburant:"auto",station:"",rappel:30,detour:true};
+const DEFAULT_PREFS={theme:"auto",carburant:"auto",station:"",rappel:30,detour:true,seuil:.25,decote:null};
 const KEY="carnet-auto-v1",KEY_BK="carnet-auto-derniere-sauvegarde",KEY_PHOTO="carnet-auto-photo";
 const S={veh:{},ech:JSON.parse(JSON.stringify(DEFAULT_ECH)),pleins:[],entretiens:[],pieces:[],prefs:{...DEFAULT_PREFS},editing:null,view:"home"};
 const $=s=>document.querySelector(s);
@@ -472,6 +506,99 @@ function tco(){
   return{start,days,fuel,maint,ins,total,kmd,perKm:total/kmd,perMonth:total/days*30.44};
 }
 
+/* ---------- Santé de la voiture ---------- */
+const isPanne=e=>e.nature==="panne";
+function periodStats(days){
+  const ps=pleinsByKm();if(ps.length<2)return null;const now=new Date();
+  const from=days?new Date(now-days*864e5):D(ps[0].date);
+  const before=ps.filter(p=>D(p.date)<from).slice(-1)[0];
+  const inW=ps.filter(p=>D(p.date)>=from);
+  const start=before||inW[0];if(!start)return null;
+  const fuelFills=before?inW:inW.slice(1);
+  const lastFill=inW.length?inW[inW.length-1]:before;
+  const kmFuel=num(lastFill.km)-num(start.km);
+  const kmTot=curKm()-num(start.km);
+  const covered=Math.max(1,(now-(before?from:D(start.date)))/864e5);
+  let L=0,F=0;fuelFills.forEach(p=>{const t=pleinTot(p);L+=t.l;F+=t.e;});
+  const fuelPerKm=kmFuel>0?F/kmFuel:NaN;
+  const es=S.entretiens.filter(e=>D(e.date)>=(before?from:new Date(D(start.date).toDateString())));
+  const prevu=es.filter(e=>!isPanne(e)).reduce((s,e)=>s+(num(e.montant)||0),0);
+  const panne=es.filter(isPanne).reduce((s,e)=>s+(num(e.montant)||0),0);
+  const ins=(num(S.veh.cotisation)||0)/365.25*covered;
+  const dec=num(S.prefs.decote)>0?num(S.prefs.decote)/365.25*covered:0;
+  const fuelCost=fuelPerKm*kmTot;
+  const total=fuelCost+prevu+panne+ins+dec;
+  return{from:before?from:D(start.date),partial:!before,covered,kmTot,kmFuel,conso:kmFuel>0?L/kmFuel*100:NaN,fuelPerKm,prevu,panne,nbPanne:es.filter(isPanne).length,ins,dec,total,perKm:kmTot>0?total/kmTot:NaN};
+}
+function renderHealth(){
+  const y=periodStats(365),q=periodStats(91),all=periodStats(0);
+  if(!y||!(y.kmTot>0)){$("#health").innerHTML='<div class="empty">L\'indicateur apparaîtra après deux pleins.</div>';$("#health-f").textContent="";return;}
+  const seuil=num(S.prefs.seuil)>0?num(S.prefs.seuil):.25;const v=y.perKm;
+  const lvl=v<=seuil?"ok":v<=seuil*1.25?"warn":"bad";
+  const words={ok:["Raisonnable","s-ok"],warn:["À surveiller","s-warn"],bad:["Trop chère","s-bad"]}[lvl];
+  const max=Math.max(seuil*1.6,v*1.1);const pct=x=>Math.min(100,x/max*100);
+  const tr=q&&q.kmTot>300?q.perKm:NaN;const dv=isFinite(tr)?(tr-v)/v*100:NaN;
+  const trCls=!isFinite(dv)?"trend-flat":dv>8?"trend-up":dv<-8?"trend-down":"trend-flat";
+  const trTxt=!isFinite(dv)?"pas assez de recul":Math.abs(dv)<=8?"stable":(dv>0?"+":"")+fmt(dv,0)+" %";
+  const ent=y.prevu+y.panne;const share=ent>0?y.panne/ent*100:0;
+  const usure=y.panne>500&&share>50?"warn":"ok";
+  const dc=q&&isFinite(q.conso)&&all&&isFinite(all.conso)&&q.kmFuel>800?(q.conso-all.conso)/all.conso*100:NaN;
+  const consoLvl=isFinite(dc)&&dc>10?"warn":"ok";
+  const dot=l=>`<span class="dot ${l==="ok"?"d-ok":"d-warn"}" style="margin-top:6px"></span>`;
+  $("#health").innerHTML=`<div class="top"><div class="big">${fmt(v,2)}<small>€/km</small></div><span class="verdict ${words[1]}">${words[0]}</span></div>
+    <div class="sub">Coût de la voiture ${y.partial?"depuis le "+fd(y.from):"sur les 12 derniers mois"} · ${km(y.kmTot)}</div>
+    <div class="meter"><span style="width:${pct(seuil)}%;background:var(--green)"></span><span style="width:${pct(seuil*1.25)-pct(seuil)}%;background:var(--orange)"></span><span style="flex:1;background:var(--red)"></span><i style="left:${pct(v)}%"></i></div>
+    <div class="meter-l"><span>0</span><span style="margin-left:${Math.max(0,pct(seuil)-12)}%">acceptable : ${fmt(seuil,2)} €</span><span></span></div>
+    <div class="row"><span class="body"><span class="t"><span>Tendance sur 3 mois</span></span><span class="s">${isFinite(tr)?fmt(tr,2)+" €/km ces 3 derniers mois":"Il faut au moins 3 mois de données"}</span></span><span class="v ${trCls}"><b style="color:inherit">${trTxt}</b></span></div>
+    <div class="row">${dot(usure)}<span class="body"><span class="t"><span>Réparations imprévues</span></span><span class="s">${y.nbPanne?`${y.nbPanne} panne${y.nbPanne>1?"s":""} · ${fmt(share,0)} % des frais d'atelier`:"Aucune panne enregistrée"}</span></span><span class="v"><b>${eur(y.panne,0)}</b></span></div>
+    <div class="row">${dot(consoLvl)}<span class="body"><span class="t"><span>Consommation</span></span><span class="s">${isFinite(dc)?`${fmt(q.conso,1)} L/100 sur 3 mois, contre ${fmt(all.conso,1)} en moyenne`:"Il faut plus de recul pour comparer"}</span></span><span class="v">${isFinite(dc)?`<b>${dc>0?"+":""}${fmt(dc,0)} %</b>`:"—"}</span></div>
+    <div class="row"><span class="body"><span class="t"><span>Détail</span></span><span class="s">Carburant ${eur(y.fuelPerKm*y.kmTot,0)} · Entretien ${eur(y.prevu,0)} · Réparations ${eur(y.panne,0)} · Assurance ${eur(y.ins,0)}${y.dec?" · Perte de valeur "+eur(y.dec,0):""}</span></span></div>`;
+  const notes=[];
+  if(lvl==="bad")notes.push("La voiture dépasse nettement ton coût acceptable.");
+  if(usure==="warn")notes.push("Les pannes représentent plus de la moitié des frais d'atelier : signe d'usure à surveiller.");
+  if(consoLvl==="warn")notes.push("La consommation augmente de plus de 10 % : sur une hybride, c'est souvent le premier signe d'usure (pneus, freins qui frottent, batterie hybride).");
+  if(!y.dec)notes.push("Perte de valeur non incluse : tu peux l'ajouter dans Réglages.");
+  $("#health-f").textContent=notes.join(" ");
+}
+
+/* ---------- Dates clés & calendrier ---------- */
+function keyDates(){
+  const out=[];const now=new Date();
+  const ct=echStatus().find(r=>norm(r.nom)===norm("Contrôle technique"));
+  if(ct&&ct.nextDate)out.push({id:"ct",title:"Contrôle technique",date:ct.nextDate,every:24,note:"Prends rendez-vous un mois avant.",alarms:[30,7]});
+  const eff=D(S.veh.dateEffet);
+  if(eff&&!isNaN(eff)){let n=new Date(eff);while(n<=now)n=addMonths(n,12);
+    out.push({id:"assu",title:"Échéance assurance"+(S.veh.assureur?" "+S.veh.assureur:""),date:n,every:12,note:"Date anniversaire du contrat.",alarms:[7]});
+    const r=addMonths(n,-2);out.push({id:"assu-reneg",title:"Renégocier l'assurance",date:r,every:12,note:"Compare les offres et demande un geste à ton assureur avant l'échéance du "+fd(n)+".",alarms:[0]});}
+  return out.sort((a,b)=>a.date-b.date);
+}
+function renderKeyDates(){
+  const k=keyDates();
+  $("#key-dates").innerHTML=k.length?k.map(e=>`<div class="row cal-ev"><span class="d"><span>${MONTHS[e.date.getMonth()].replace(".","")}</span><b>${e.date.getDate()}</b></span><span class="body"><span class="t"><span>${esc(e.title)}</span></span><span class="s">${fd(e.date)} · ${esc(e.note)}</span></span></div>`).join(""):'<div class="empty">Renseigne la date d\'effet de l\'assurance et ton dernier contrôle technique pour voir les dates clés.</div>';
+}
+function icsFile(){
+  const pad=n=>String(n).padStart(2,"0");const ymd=d=>d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate());
+  const stamp=new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z";
+  const escI=s=>String(s).replace(/\\/g,"\\\\").replace(/;/g,"\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");
+  const car=[S.veh.marque,S.veh.modele].filter(Boolean).join(" ")||"Voiture";
+  const L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Carnet auto//FR","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:Voiture"];
+  keyDates().forEach(e=>{const end=new Date(e.date);end.setDate(end.getDate()+1);
+    L.push("BEGIN:VEVENT","UID:carnet-auto-"+e.id+"@heikefr.github.io","DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+ymd(e.date),"DTEND;VALUE=DATE:"+ymd(end),
+      "SUMMARY:"+escI(e.title+" · "+car),"DESCRIPTION:"+escI(e.note),"RRULE:FREQ=MONTHLY;INTERVAL="+e.every,"TRANSP:TRANSPARENT");
+    e.alarms.forEach(a=>L.push("BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+escI(e.title),(a?"TRIGGER:-P"+a+"D":"TRIGGER:PT9H"),"END:VALARM"));
+    L.push("END:VEVENT");});
+  L.push("END:VCALENDAR");return L.join("\r\n");
+}
+function openCalendar(){
+  const k=keyDates();if(!k.length){toast("Aucune date à ajouter");return;}
+  const ics=icsFile();const data="data:text/calendar;charset=utf-8,"+encodeURIComponent(ics);
+  sheet("Ajouter au calendrier",`<div class="fgroup">${k.map(e=>`<div class="frow cal-ev"><span class="d"><span>${MONTHS[e.date.getMonth()].replace(".","")}</span><b>${e.date.getDate()}</b></span><span style="flex:1"><b style="font-weight:600">${esc(e.title)}</b><br><span class="muted" style="font-size:14px">${e.every===24?"Tous les 2 ans":"Tous les ans"} · rappel ${e.alarms.map(a=>a?a+" j avant":"le jour même").join(" et ")}</span></span></div>`).join("")}</div>
+    <div class="fgroup" style="padding:12px 16px;font-size:15px;line-height:1.5"><b>Pour un calendrier à part :</b> dans l'app Calendrier, touche « Calendriers », puis « Ajouter un calendrier » et nomme-le « Voiture ». Au moment d'ajouter les dates, choisis ce calendrier.</div>
+    <div class="btns" style="flex-direction:column"><a class="btn primary" href="${data}" download="voiture.ics" style="text-decoration:none">Ouvrir dans Calendrier</a><button class="btn" id="ics-share" type="button">Enregistrer le fichier .ics</button></div>
+    <p class="sec-f" style="padding:10px 4px 0;margin:0">Si Calendrier ne s'ouvre pas, enregistre le fichier dans Fichiers puis touche-le : iPhone propose « Ajouter tout ». N'ajoute les dates qu'une fois pour éviter les doublons.</p>`,()=>{
+    $("#ics-share").addEventListener("click",()=>exportFile("voiture.ics",ics,"text/calendar"));});
+}
+
 /* ---------- Thème ---------- */
 function applyTheme(){
   const t=S.prefs.theme;const r=document.documentElement;
@@ -506,6 +633,7 @@ function renderHome(){
 }
 function kpiHTML(list){return list.map(x=>`<div class="kpi"><div class="k">${x[0]}</div><div class="v">${x[1]}<small>${x[2]}</small></div><div class="d">${esc(x[3])}</div></div>`).join("");}
 function renderCouts(){
+  renderHealth();
   const fs=fuelStats(),t=tco();const k=[];
   if(t){k.push(["Coût réel / mois",fmt(t.perMonth,0),"€","tout compris"]);k.push(["Coût au km",fmt(t.perKm,2),"€","tout compris"]);}
   if(fs){k.push(["Conso moyenne",fmt(fs.conso,1),"L/100","sur "+km(fs.dist)]);k.push(["Rythme",fmt(fs.kmMonth,0),"km/mois","depuis le "+fd(fs.first.date)]);}
@@ -571,7 +699,7 @@ function renderEntretien(){
   $("#due-sum").textContent=[nb?nb+" en retard":"",nw?nw+" à prévoir":""].filter(Boolean).join(" · ");
   const es=S.entretiens.slice().sort((a,b)=>D(b.date)-D(a.date)||num(b.km)-num(a.km));const tot=es.reduce((s,e)=>s+(num(e.montant)||0),0);
   $("#maint-total").textContent=es.length?eur(tot,0):"";
-  $("#maint-list").innerHTML=es.length?es.map(e=>`<button class="row" data-ent="${esc(e._id)}"><span class="body"><span class="t"><span>${esc(e.type)}</span></span><span class="s"><span>${fd(e.date)}</span><span>${km(num(e.km))}</span>${e.note?`<span>${esc(e.note)}</span>`:""}</span></span><span class="v">${num(e.montant)>0?`<b>${eur(num(e.montant))}</b>`:"—"}</span></button>`).join(""):'<div class="empty">Aucun entretien. Touche « + » pour en ajouter un.</div>';
+  $("#maint-list").innerHTML=es.length?es.map(e=>`<button class="row" data-ent="${esc(e._id)}"><span class="body"><span class="t"><span>${esc(e.type)}</span>${isPanne(e)?'<span class="chip panne">Panne</span>':""}</span><span class="s"><span>${fd(e.date)}</span><span>${km(num(e.km))}</span>${e.note?`<span>${esc(e.note)}</span>`:""}</span></span><span class="v">${num(e.montant)>0?`<b>${eur(num(e.montant))}</b>`:"—"}</span></button>`).join(""):'<div class="empty">Aucun entretien. Touche « + » pour en ajouter un.</div>';
   const groups={};S.pieces.forEach(p=>(groups[p.categorie||"Divers"]=groups[p.categorie||"Divers"]||[]).push(p));
   const gk=Object.keys(groups);
   $("#pieces").innerHTML=gk.length?gk.map((g,i)=>`${i?'<div style="height:12px"></div>':""}<div class="group"><div class="row" style="min-height:40px"><span class="body"><span class="t"><span style="font-weight:600">${esc(g)}</span></span></span><span class="v">${eur(groups[g].reduce((s,p)=>s+(num(p.prix)||0),0))}</span></div>${groups[g].map(p=>`<button class="row" data-piece="${esc(p._id)}"><span class="body"><span class="t"><span style="white-space:normal">${esc(p.article)}</span></span><span class="s"><span>${esc(p.qte)}</span><span>${esc(p.marque)}</span><span style="font-family:var(--f-m);font-size:13px">${esc(p.ref)}</span><span>${esc(p.magasin)}</span></span></span><span class="v"><b>${eur(num(p.prix))}</b></span></button>`).join("")}</div>`).join(""):'<div class="group"><div class="empty">Note ici les références de tes pièces pour les racheter facilement.</div></div>';
@@ -580,6 +708,7 @@ const VEH_FIELDS=[["marque","Constructeur"],["modele","Modèle"],["immat","Immat
 const INS_FIELDS=[["assureur","Assureur"],["formule","Formule"],["contrat","N° de contrat"],["cotisation","Cotisation / an (€)","num"],["dateEffet","Date d'effet","date"],["renouvellement","Renouvellement"],["prelevement","Prélèvement"],["banque","Banque"],["assistance","Assistance"]];
 const kvHTML=(fields,group)=>{const ed=S.editing===group;return fields.map(f=>`<div class="field"><label for="kv-${f[0]}">${f[1]}</label><input id="kv-${f[0]}" ${f[2]==="date"?'type="date"':f[2]==="num"?'inputmode="decimal"':""} value="${esc(S.veh[f[0]]??"")}" ${ed?"":"disabled"} placeholder="${ed?"":"—"}"></div>`).join("");};
 function renderVehicule(){
+  renderKeyDates();
   $("#kv-veh").innerHTML=kvHTML(VEH_FIELDS,"veh");$("#kv-ins").innerHTML=kvHTML(INS_FIELDS,"ins");
   document.querySelectorAll("[data-edit]").forEach(b=>b.textContent=S.editing===b.dataset.edit?"OK":"Modifier");
   const ck=curKm();const tyre=pos=>S.entretiens.filter(e=>norm(e.type)===norm("Pneu "+pos)).sort((a,b)=>D(b.date)-D(a.date))[0];
@@ -587,6 +716,8 @@ function renderVehicule(){
 }
 function renderReglages(){
   document.querySelectorAll("#theme-seg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.themeV===S.prefs.theme)));
+  if(document.activeElement!==$("#pref-seuil"))$("#pref-seuil").value=fmt(num(S.prefs.seuil)||.25,2);
+  if(document.activeElement!==$("#pref-decote"))$("#pref-decote").value=num(S.prefs.decote)>0?S.prefs.decote:"";
   $("#pref-detour").checked=S.prefs.detour!==false;
   const ph=getPhoto();$("#photo-thumb").hidden=!ph;if(ph)$("#photo-thumb").src=ph;$("#photo-state").textContent=ph?"Photo enregistrée":"Aucune photo";$("#photo-pick").textContent=ph?"Changer de photo":"Choisir une photo";$("#photo-del").hidden=!ph;
   $("#pref-fuel").innerHTML=`<option value="auto">Le dernier utilisé</option>`+FUELS.map(f=>`<option ${S.prefs.carburant===f?"selected":""}>${f}</option>`).join("");
@@ -608,7 +739,7 @@ let _rw=0;window.addEventListener("resize",()=>{clearTimeout(_rw);_rw=setTimeout
 /* ---------- Navigation ---------- */
 const VIEWS=["home","pleins","entretien","couts","vehicule","reglages"];
 function go(v,opts){
-  if(!VIEWS.includes(v))v="home";S.view=v;
+  if(!VIEWS.includes(v))v="home";S.view=v;if($("#sbg"))closeSheet();
   VIEWS.forEach(k=>$("#v-"+k).hidden=k!==v);
   const tab=["vehicule","reglages"].includes(v)?"home":v;
   document.querySelectorAll("#tabbar button").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===tab?"page":"false"));
@@ -629,7 +760,7 @@ document.addEventListener("click",e=>{
   if(el.dataset.go){go(el.dataset.go);if(el.dataset.editAfter&&S.editing!==el.dataset.editAfter)toggleEdit(el.dataset.editAfter);return;}
   if(el.dataset.act){closeMenu();const a=el.dataset.act;
     if(a==="plein")openPlein(null);else if(a==="entretien")openEnt(null);else if(a==="piece")openPiece(null);else if(a==="backup")backupNow();
-    else if(a==="csv-fuel")exportFuel();else if(a==="csv-maint")exportMaint();return;}
+    else if(a==="calendar")openCalendar();else if(a==="csv-fuel")exportFuel();else if(a==="csv-maint")exportMaint();return;}
   if(el.dataset.plein){openPlein(S.pleins.find(x=>x._id===el.dataset.plein));return;}
   if(el.dataset.ent){openEnt(S.entretiens.find(x=>x._id===el.dataset.ent));return;}
   if(el.dataset.piece){openPiece(S.pieces.find(x=>x._id===el.dataset.piece));return;}
@@ -643,6 +774,8 @@ $("#scrim").addEventListener("click",closeMenu);
 
 /* ---------- Réglages ---------- */
 $("#pref-detour").addEventListener("change",e=>{S.prefs.detour=e.target.checked;persist();});
+$("#pref-seuil").addEventListener("change",e=>{const v=num(e.target.value);S.prefs.seuil=v>0?v:.25;persist();renderAll();toast("Enregistré");});
+$("#pref-decote").addEventListener("change",e=>{const v=num(e.target.value);S.prefs.decote=v>0?Math.round(v):null;persist();renderAll();toast("Enregistré");});
 $("#pref-fuel").addEventListener("change",e=>{S.prefs.carburant=e.target.value;persist();toast("Enregistré");});
 $("#pref-station").addEventListener("change",e=>{S.prefs.station=e.target.value.trim();persist();toast("Enregistré");});
 $("#pref-rappel").addEventListener("change",e=>{S.prefs.rappel=num(e.target.value);persist();renderMeta();toast("Enregistré");});
@@ -746,6 +879,7 @@ function openEnt(en){
   const ed=!!en;const types=(S.ech.items||[]).map(i=>i.nom);const known=!ed||types.some(t=>norm(t)===norm(en.type));
   sheet(ed?"Modifier l'entretien":"Nouvel entretien",`<form id="fe" novalidate><div class="fgroup">
     <div class="frow"><label for="et">Intervention</label><select id="et">${types.map(t=>`<option ${ed&&norm(t)===norm(en.type)?"selected":""}>${esc(t)}</option>`).join("")}<option value="__autre" ${!known?"selected":""}>Autre…</option></select></div>
+    <div class="frow"><div class="seg" id="enat"><button type="button" data-n="prevu" aria-pressed="${!(ed&&isPanne(en))}">Entretien prévu</button><button type="button" data-n="panne" aria-pressed="${!!(ed&&isPanne(en))}">Panne / réparation</button></div></div>
     <div class="frow" id="eo-w" ${known?"hidden":""}><label for="eo">Nom</label><input id="eo" value="${esc(!known?en.type:"")}" placeholder="Plaquettes arrière…"></div>
     <div class="frow"><label for="ed">Date</label><input id="ed" type="date" value="${esc(ed?en.date:new Date().toISOString().slice(0,10))}"></div>
     <div class="frow"><label for="ek">Compteur</label><input id="ek" inputmode="numeric" value="${esc(ed?en.km:"")}" placeholder="${fmt(curKm())} km"></div>
@@ -753,13 +887,16 @@ function openEnt(en){
     <div class="frow"><label for="en">Note</label><input id="en" value="${esc(ed?en.note||"":"")}" placeholder="Garage, pièce…"></div>
   </div><div id="emsg"></div><p class="sec-f" style="padding:0 6px 10px;margin:0">Pour une révision complète, enregistre une ligne par intervention pour que chaque échéance se mette à jour.</p></form>
   <div class="btns">${ed?delBtn():""}<button class="btn primary" id="esave" type="button">Enregistrer</button></div>`,()=>{
+    let nature=ed&&isPanne(en)?"panne":"prevu";
+    $("#enat").addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;nature=b.dataset.n;$("#enat").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+      if(nature==="panne"&&!ed){$("#et").value="__autre";$("#eo-w").hidden=false;}});
     $("#et").addEventListener("change",()=>{$("#eo-w").hidden=$("#et").value!=="__autre";});
     $("#esave").addEventListener("click",async()=>{
       const type=$("#et").value==="__autre"?$("#eo").value.trim():$("#et").value;const kmv=num($("#ek").value);const m=num($("#em").value);const errs=[];
       if(!type)errs.push("Indique le nom de l'intervention.");if(!$("#ed").value)errs.push("Indique la date.");if(!(kmv>0))errs.push("Indique le kilométrage.");if($("#em").value.trim()&&!(m>=0))errs.push("Le montant n'est pas un nombre.");
       if(errs.length){$("#emsg").innerHTML=errs.map(e=>`<div class="msg e">${esc(e)}</div>`).join("");return;}
       $("#esave").disabled=true;
-      if(await save("entretiens",ed?en._id:null,{date:$("#ed").value,km:kmv,type,montant:isFinite(m)?Math.round(m*100)/100:null,note:$("#en").value.trim()})){closeSheet();toast(ed?"Entretien modifié":"Entretien enregistré");}else $("#esave").disabled=false;});
+      if(await save("entretiens",ed?en._id:null,{date:$("#ed").value,km:kmv,type,nature,montant:isFinite(m)?Math.round(m*100)/100:null,note:$("#en").value.trim()})){closeSheet();toast(ed?"Entretien modifié":"Entretien enregistré");}else $("#esave").disabled=false;});
     if(ed)armDelete(()=>del("entretiens",en._id));
   });
 }
