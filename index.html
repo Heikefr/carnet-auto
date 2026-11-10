@@ -122,6 +122,11 @@ button.row:active,.row.tap:active{background:var(--card-2)}
 .stage{position:relative;height:clamp(210px,56vw,330px);margin:6px -12px 10px;user-select:none;-webkit-user-select:none}
 .stage::before{content:"";position:absolute;left:8%;right:8%;top:10%;bottom:4%;border-radius:50%;background:radial-gradient(closest-side,var(--stage-glow),transparent);opacity:.95;pointer-events:none}
 .stage::after{content:"";position:absolute;left:10%;right:10%;bottom:9%;height:22%;border-radius:50%;background:radial-gradient(closest-side,var(--stage-floor),transparent);pointer-events:none;z-index:-1}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y;cursor:grab}
+.stage canvas:active{cursor:grabbing}
+.swatches{display:flex;gap:10px}
+.sw{width:30px;height:30px;border-radius:50%;border:0;padding:0;box-shadow:inset 0 0 0 1px rgba(127,127,127,.35)}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--accent)}
 .photo{position:absolute;inset:3% 0 5%;display:flex;align-items:center;justify-content:center}
 .photo img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 18px 16px rgba(0,0,0,.22))}
 .photo-empty{position:absolute;inset:8% 6%;border:1.5px dashed var(--sep);border-radius:28px;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);font-size:15px}
@@ -283,6 +288,7 @@ label.btn{cursor:pointer}
 
   <div class="stage" id="stage">
     <div class="plate" id="h-plate-w"><i>F</i><span id="h-plate">—</span></div>
+    <canvas id="car3d" hidden role="img" aria-label="Voiture en 3D, fais glisser pour la tourner"></canvas>
     <div class="photo" id="photo" hidden><img id="photo-img" alt="Ma voiture"></div>
     <button class="photo-empty" id="photo-empty" data-go="reglages"><svg class="i" viewBox="0 0 24 24"><path d="M5 17v-3.5l1.8-4.6A2 2 0 0 1 8.7 7.6h6.6a2 2 0 0 1 1.9 1.3l1.8 4.6V17"/><path d="M3.5 17h17v2h-17z"/><circle cx="7.5" cy="14.5" r=".8"/><circle cx="16.5" cy="14.5" r=".8"/></svg>Ajoute une photo de ta voiture dans Réglages</button>
   </div>
@@ -361,14 +367,24 @@ label.btn{cursor:pointer}
   <div class="group"><button class="row link-row" data-act="calendar"><div class="body"><div class="t">Ajouter les dates clés au calendrier</div><div class="s" id="cal-next"></div></div></button></div>
   <div class="sec-f">Contrôle technique, échéance de l'assurance et rappel pour la renégocier. Aussi disponible dans Accueil › Véhicule › Dates clés.</div>
 
-  <div class="sec-h"><span>Photo de la voiture</span></div>
-  <div class="group">
+  <div class="sec-h"><span>Voiture sur l'accueil</span></div>
+  <div class="group"><div class="row"><div class="seg" id="vue-seg"><button data-vue="photo">Photo</button><button data-vue="3d">Modèle 3D</button></div></div></div>
+  <div id="car3d-opts" hidden>
+    <div class="group" style="margin-top:10px">
+      <div class="row"><div class="body"><div class="t">Rotation automatique</div></div><label class="switch"><input type="checkbox" id="pref-rot3d"><span></span></label></div>
+      <div class="row"><div class="body"><div class="t">Couleur</div></div><div class="swatches" id="swatches"></div></div>
+    </div>
+    <div class="sec-f" id="car3d-note">Une compacte sportive dessinée pour l'appli. Fais-la tourner en glissant le doigt.</div>
+  </div>
+  <div id="photo-opts">
+  <div class="group" style="margin-top:10px">
     <div class="row"><img class="thumb" id="photo-thumb" alt="" hidden><div class="body"><div class="t" id="photo-state">Aucune photo</div></div></div>
     <label class="row link-row tap" for="photo-file" style="cursor:pointer"><div class="body"><div class="t" id="photo-pick">Choisir une photo</div></div></label>
     <div class="row"><div class="body"><div class="t">Retirer le fond uni</div><div class="s">Rend transparent un fond blanc ou gris autour de la voiture</div></div><label class="switch"><input type="checkbox" id="pref-detour" checked><span></span></label></div>
     <button class="row danger" id="photo-del" hidden><div class="body"><div class="t">Retirer la photo</div></div></button>
   </div>
   <div class="sec-f">Idéal : une photo de trois quarts avant, prise sur un fond uni. Elle reste uniquement sur ce téléphone et suit tes sauvegardes.</div>
+  </div>
   <input type="file" id="photo-file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true">
 
   <div class="sec-h"><span>Icône de l'appli</span></div>
@@ -448,14 +464,16 @@ label.btn{cursor:pointer}
 <div id="sheet-root"></div>
 <div id="toast" class="gl toast" hidden></div>
 
+<script src="car3d.js"></script>
 <script>
 (function(){
 "use strict";
-const VERSION="2.4";
+const VERSION="2.5";
 const FUELS=["SP95 E10","SP98","E85","SP95","Gazole"];
 const DEFAULT_ECH={seuilKm:2000,seuilJours:30,items:[{nom:"Vidange Moteur",mois:12,km:25000},{nom:"Liquide de frein",mois:24,km:30000},{nom:"Liquide de refroidissement",mois:60,km:90000},{nom:"Filtre d'habitacle",mois:12,km:25000},{nom:"Bougies d'allumage",mois:72,km:90000},{nom:"Filtre à air moteur",mois:48,km:48000},{nom:"Disque de frein avant",mois:60,km:90000},{nom:"Pneu avant",mois:48,km:50000},{nom:"Pneu arrière",mois:48,km:25000},{nom:"Contrôle technique",mois:24,km:null}]};
-const DEFAULT_PREFS={theme:"auto",carburant:"auto",station:"",rappel:30,detour:true,seuil:.25,decote:null};
+const DEFAULT_PREFS={theme:"auto",carburant:"auto",station:"",rappel:30,detour:true,seuil:.25,decote:null,vue:"photo",rot3d:true,couleur:"noir"};
 const KEY="carnet-auto-v1",KEY_BK="carnet-auto-derniere-sauvegarde",KEY_PHOTO="carnet-auto-photo";
+let car3d=null,car3dFailed=false;
 const S={veh:{},ech:JSON.parse(JSON.stringify(DEFAULT_ECH)),pleins:[],entretiens:[],pieces:[],prefs:{...DEFAULT_PREFS},editing:null,view:"home"};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -570,6 +588,7 @@ function renderHealth(){
 
 /* ---------- Journal des versions ---------- */
 const CHANGELOG=[
+  ["2.5","10 nov. 2026",["Modèle 3D de la voiture sur l'accueil, à faire tourner au doigt","Choix entre la photo et le modèle 3D dans les Réglages","Couleur de carrosserie et rotation automatique réglables"]],
   ["2.4","4 nov. 2026",["Ajout au calendrier corrigé : le fichier passe par l'app Fichiers, qui propose « Ajouter tout »"]],
   ["2.3","4 nov. 2026",["Raccourci « Ajouter les dates clés au calendrier » dans les Réglages","Journal des nouveautés en bas des Réglages"]],
   ["2.2","4 nov. 2026",["Indicateur « Santé de la voiture » dans Coûts : coût au km sur 12 mois, verdict, tendance sur 3 mois","Suivi des pannes : chaque entretien peut être marqué « Panne / réparation »","Alerte si la consommation augmente de plus de 10 %","Coût acceptable et perte de valeur réglables","Dates clés (contrôle technique, assurance, renégociation) et ajout au calendrier dans Véhicule"]],
@@ -630,7 +649,9 @@ function applyTheme(){
   if(t==="light"||t==="dark")r.setAttribute("data-theme",t);else r.removeAttribute("data-theme");
   const dark=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);
   document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.setAttribute("content",dark?"#000000":"#f2f2f7"));
+  if(car3d)sync3d();
 }
+const isDark=()=>{const t=S.prefs.theme;return t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);};
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",applyTheme);
 
 /* ---------- Rendu ---------- */
@@ -743,6 +764,11 @@ function renderReglages(){
   document.querySelectorAll("#theme-seg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.themeV===S.prefs.theme)));
   if(document.activeElement!==$("#pref-seuil"))$("#pref-seuil").value=fmt(num(S.prefs.seuil)||.25,2);
   if(document.activeElement!==$("#pref-decote"))$("#pref-decote").value=num(S.prefs.decote)>0?S.prefs.decote:"";
+  { const v3=S.prefs.vue==="3d"&&!car3dFailed;
+    document.querySelectorAll("#vue-seg button").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.vue==="3d")===v3)));
+    $("#car3d-opts").hidden=!v3&&!car3dFailed;$("#photo-opts").hidden=v3;$("#pref-rot3d").checked=S.prefs.rot3d!==false;
+    $("#swatches").innerHTML=Object.entries(COLORS3D).map(([k,c])=>`<button class="sw" style="background:${c[2]}" data-color="${k}" aria-label="${c[0]}" aria-pressed="${(S.prefs.couleur||"noir")===k}"></button>`).join("");
+    if(car3dFailed){$("#car3d-opts").querySelector(".group").hidden=true;$("#car3d-note").textContent="La vue 3D n'est pas disponible sur cet appareil. La photo reste affichée.";} }
   $("#pref-detour").checked=S.prefs.detour!==false;
   const ph=getPhoto();$("#photo-thumb").hidden=!ph;if(ph)$("#photo-thumb").src=ph;$("#photo-state").textContent=ph?"Photo enregistrée":"Aucune photo";$("#photo-pick").textContent=ph?"Changer de photo":"Choisir une photo";$("#photo-del").hidden=!ph;
   $("#pref-fuel").innerHTML=`<option value="auto">Le dernier utilisé</option>`+FUELS.map(f=>`<option ${S.prefs.carburant===f?"selected":""}>${f}</option>`).join("");
@@ -759,7 +785,7 @@ function renderMeta(){
   const has=S.pleins.length||S.entretiens.length||S.veh.marque;$("#welcome").hidden=!!has;
 }
 function renderAll(){renderHome();renderPleins();renderEntretien();renderCouts();renderVehicule();renderReglages();renderMeta();}
-let _rw=0;window.addEventListener("resize",()=>{clearTimeout(_rw);_rw=setTimeout(renderChart,150);});
+let _rw=0;window.addEventListener("resize",()=>{clearTimeout(_rw);_rw=setTimeout(()=>{renderChart();if(car3d)car3d.draw();},150);});
 
 /* ---------- Navigation ---------- */
 const VIEWS=["home","pleins","entretien","couts","vehicule","reglages"];
@@ -772,6 +798,7 @@ function go(v,opts){
   $("#tb-title").textContent=$("#v-"+v).dataset.title||"";$("#tb-back").hidden=!$("#v-"+v).dataset.parent;
   window.scrollTo(0,0);onScroll();closeMenu();
   if(v==="couts")renderChart();
+  sync3d();
 }
 window.addEventListener("hashchange",()=>{const v=location.hash.slice(1);if(v!==S.view)go(v);});
 $("#tb-back").addEventListener("click",()=>go("home"));
@@ -780,7 +807,7 @@ function onScroll(){const y=window.scrollY;$("#topbar").classList.toggle("show",
   const dock=$("#dock");if(y>lastY+6&&y>80)dock.classList.add("min");else if(y<lastY-6||y<40)dock.classList.remove("min");lastY=y;}
 window.addEventListener("scroll",onScroll,{passive:true});
 document.addEventListener("click",e=>{
-  const el=e.target.closest("[data-tab],[data-go],[data-act],[data-plein],[data-ent],[data-piece],[data-edit],[data-theme-v]");if(!el)return;
+  const el=e.target.closest("[data-tab],[data-go],[data-act],[data-plein],[data-ent],[data-piece],[data-edit],[data-theme-v],[data-vue],[data-color]");if(!el)return;
   if(el.dataset.tab){if(el.dataset.tab===S.view)window.scrollTo({top:0,behavior:"smooth"});else go(el.dataset.tab);return;}
   if(el.dataset.go){go(el.dataset.go);if(el.dataset.editAfter&&S.editing!==el.dataset.editAfter)toggleEdit(el.dataset.editAfter);return;}
   if(el.dataset.act){closeMenu();const a=el.dataset.act;
@@ -790,6 +817,8 @@ document.addEventListener("click",e=>{
   if(el.dataset.ent){openEnt(S.entretiens.find(x=>x._id===el.dataset.ent));return;}
   if(el.dataset.piece){openPiece(S.pieces.find(x=>x._id===el.dataset.piece));return;}
   if(el.dataset.edit){toggleEdit(el.dataset.edit);return;}
+  if(el.dataset.vue){S.prefs.vue=el.dataset.vue;persist();renderAll();return;}
+  if(el.dataset.color){S.prefs.couleur=el.dataset.color;persist();renderReglages();return;}
   if(el.dataset.themeV){S.prefs.theme=el.dataset.themeV;persist();applyTheme();renderReglages();return;}
 });
 function openMenu(){$("#menu").hidden=false;$("#scrim").hidden=false;$("#plus").setAttribute("aria-expanded","true");}
@@ -799,6 +828,7 @@ $("#scrim").addEventListener("click",closeMenu);
 
 /* ---------- Réglages ---------- */
 $("#pref-detour").addEventListener("change",e=>{S.prefs.detour=e.target.checked;persist();});
+$("#pref-rot3d").addEventListener("change",e=>{S.prefs.rot3d=e.target.checked;persist();});
 $("#pref-seuil").addEventListener("change",e=>{const v=num(e.target.value);S.prefs.seuil=v>0?v:.25;persist();renderAll();toast("Enregistré");});
 $("#pref-decote").addEventListener("change",e=>{const v=num(e.target.value);S.prefs.decote=v>0?Math.round(v):null;persist();renderAll();toast("Enregistré");});
 $("#pref-fuel").addEventListener("change",e=>{S.prefs.carburant=e.target.value;persist();toast("Enregistré");});
@@ -976,7 +1006,18 @@ function importText(txt,name){
 /* ---------- Photo de la voiture ---------- */
 function getPhoto(){try{return localStorage.getItem(KEY_PHOTO);}catch(e){return null;}}
 function setPhoto(url){try{if(url)localStorage.setItem(KEY_PHOTO,url);else localStorage.removeItem(KEY_PHOTO);return true;}catch(e){toast("Photo trop lourde pour être enregistrée");return false;}}
-function renderPhoto(){const ph=getPhoto();$("#photo").hidden=!ph;$("#photo-empty").hidden=!!ph;if(ph&&$("#photo-img").getAttribute("src")!==ph)$("#photo-img").src=ph;}
+function renderPhoto(){const ph=getPhoto();const v3=S.prefs.vue==="3d"&&!car3dFailed;
+  $("#car3d").hidden=!v3;$("#photo").hidden=v3||!ph;$("#photo-empty").hidden=v3||!!ph;
+  if(ph&&$("#photo-img").getAttribute("src")!==ph)$("#photo-img").src=ph;sync3d();}
+/* ---------- Modèle 3D ---------- */
+const COLORS3D={noir:["Noir",[0.012,0.013,0.016],"#15161a"],gris:["Gris",[0.11,0.115,0.12],"#63676c"],blanc:["Blanc",[0.70,0.70,0.68],"#ebeae5"],bleu:["Bleu nuit",[0.01,0.028,0.095],"#1f3657"],rouge:["Rouge",[0.22,0.008,0.012],"#8b1820"]};
+function sync3d(){
+  const on=S.prefs.vue==="3d"&&!car3dFailed&&S.view==="home";
+  if(!on){if(car3d)car3d.stop();return;}
+  if(!car3d){try{car3d=window.Car3D?Car3D.create($("#car3d"),{yaw:-0.98,pitch:0.15,dark:isDark(),auto:false}):null;}catch(e){car3d=null;}
+    if(!car3d){car3dFailed=true;toast("Vue 3D indisponible sur cet appareil");renderPhoto();renderReglages();return;}}
+  car3d.set({dark:isDark(),paint:(COLORS3D[S.prefs.couleur]||COLORS3D.noir)[1],auto:S.prefs.rot3d!==false});car3d.start();
+}
 const loadImg=f=>new Promise((ok,ko)=>{const u=URL.createObjectURL(f);const i=new Image();i.onload=()=>{ok(i);setTimeout(()=>URL.revokeObjectURL(u),1000);};i.onerror=()=>ko(new Error("img"));i.src=u;});
 function removeBackground(cx,w,h){
   const im=cx.getImageData(0,0,w,h),d=im.data;const px=(x,y)=>(y*w+x)*4;
