@@ -260,6 +260,7 @@ button.row:active,.row.tap:active{background:var(--card-2)}
 .frow>label,.frow>span.l{flex:none;font-size:16px;color:var(--ink-2);min-width:88px}
 .frow input,.frow select{flex:1;min-width:0;border:0;background:none;text-align:right;font-size:17px;padding:8px 0;color:var(--ink)}
 .frow input::placeholder{color:var(--muted)}
+.frow input.guess{color:var(--muted)} /* compteur proposé, pas encore modifié */
 .fhead{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.02em;padding:0 14px 6px;display:flex;justify-content:space-between}
 .fhead button{border:0;background:none;color:var(--accent);text-transform:none;font-size:14px;padding:0}
 .live{display:flex;gap:6px 16px;flex-wrap:wrap;font-size:15px;color:var(--muted);padding:0 4px 12px}

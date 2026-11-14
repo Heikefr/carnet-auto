@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Carnet auto 1.0 — sw.js (service worker)
+   Carnet auto 1.1 — sw.js (service worker)
    Permet à l'application de s'ouvrir sans connexion.
 
    Stratégie « réseau d'abord » : à chaque ouverture on demande les fichiers au site
@@ -8,7 +8,7 @@
    À CHAQUE NOUVELLE VERSION : changer le nom du cache ci-dessous. L'ancien cache est alors
    supprimé et les nouveaux fichiers sont pris en compte.
    ========================================================================== */
-const CACHE = "carnet-auto-1.0";
+const CACHE = "carnet-auto-1.1";
 const ASSETS = ["./", "./index.html", "./style.css", "./app.js", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 // Installation : met tous les fichiers de l'appli en cache, puis s'active sans attendre

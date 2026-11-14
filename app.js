@@ -23,7 +23,7 @@
    1. CONSTANTES
    ========================================================================== */
 
-const VERSION = "1.0";
+const VERSION = "1.1";
 
 /* Clés du stockage local. NE PAS RENOMMER : ce sont elles qui retrouvent les données déjà enregistrées. */
 const KEY = "carnet-auto-v1";                          // toutes les données (JSON, voir snapshot())
@@ -82,6 +82,11 @@ const PIECE_FIELDS = [["pcat", "categorie", "Catégorie"], ["part", "article", "
 
 /* Journal des versions affiché en bas des Réglages (la plus récente en premier) */
 const CHANGELOG = [
+  { v: "1.1", date: "14 nov. 2026", items: [
+    "Nouveau plein : la station se choisit dans la liste de celles déjà fréquentées, la plus utilisée en premier",
+    "« Nouvelle station… » en bas de la liste pour en ajouter une",
+    "Compteur pré-rempli avec ton écart habituel entre deux pleins : touche le champ, les 3 derniers chiffres sont prêts à être remplacés",
+    "Alerte si tu enregistres le compteur proposé sans l'avoir modifié"] },
   { v: "1.0", date: "12 nov. 2026", items: [
     "Version stable : fin de la phase bêta",
     "Application plus légère et plus rapide : seul l'écran affiché est recalculé",
@@ -848,7 +853,22 @@ function openPlein(p) {
   // valeurs proposées : réglage choisi, sinon celles du dernier plein
   const defType = S.prefs.carburant !== "auto" && S.prefs.carburant || (last && (last.carburants || [{}])[0].type) || "SP95 E10";
   const defStation = S.prefs.station || (last && last.station) || "";
-  const stations = [...new Set(S.pleins.map(x => x.station).filter(Boolean))];
+  const curStation = p ? p.station || "" : defStation;
+  // stations déjà fréquentées, de la plus utilisée à la moins utilisée
+  const freq = {};
+  S.pleins.forEach(x => { if (x.station) freq[x.station] = (freq[x.station] || 0) + 1; });
+  const stations = Object.keys(freq).sort((a, b) => freq[b] - freq[a] || a.localeCompare(b, "fr"));
+  if (curStation && !freq[curStation]) stations.unshift(curStation);         // station réglée dans Réglages mais jamais utilisée
+  const newStation = !curStation;                                       // aucune station connue : on ouvre directement le champ « Nom »
+
+  /* Compteur proposé (nouveau plein seulement) :
+       dernier compteur + écart médian des 10 derniers intervalles entre pleins, arrondi à la centaine.
+     La médiane ignore les intervalles exceptionnels (un long trajet, un plein d'appoint).
+     Le chiffre est affiché en gris ; en touchant le champ, les 3 derniers chiffres sont sélectionnés
+     pour être remplacés directement. */
+  const asc = pleinsByKm();
+  const gaps = asc.slice(1).map((x, i) => num(x.km) - num(asc[i].km)).filter(g => g > 0).slice(-10).sort((a, b) => a - b);
+  const guess = !p && last && gaps.length ? Math.round((num(last.km) + gaps[Math.floor(gaps.length / 2)]) / 100) * 100 : null;
 
   /** Bloc d'un carburant (i = 0 : principal, i = 1 : second carburant d'un mélange, ex. E85 + SP95). */
   const fuelBlock = (i, c) => `<div class="fhead"><span>${i ? "2e carburant (mélange)" : "Carburant"}</span>${i ? '<button type="button" id="rm2">Retirer</button>' : ""}</div><div class="fgroup">
@@ -860,18 +880,32 @@ function openPlein(p) {
   sheet(p ? "Modifier le plein" : "Nouveau plein", `<form id="fp" novalidate>
     <div class="fgroup">
       ${frow("pd", "Date", `type="datetime-local" value="${esc(p ? String(p.date || "").slice(0, 16) : localNow())}"`)}
-      ${frow("pk", "Compteur", `inputmode="numeric" value="${esc(p ? p.km : "")}" placeholder="${fmt(curKm())} km"`)}
-      ${frow("ps", "Station", `list="stations" value="${esc(p ? p.station : defStation)}"`)}
+      ${frow("pk", "Compteur", `inputmode="numeric" ${guess ? 'class="guess"' : ""} value="${esc(p ? p.km : guess ? fmt(guess) : "")}" placeholder="${fmt(curKm())} km"`)}
+      <div class="frow"><label for="ps">Station</label><select id="ps">${stations.map(s => `<option ${s === curStation ? "selected" : ""}>${esc(s)}</option>`).join("")}<option value="__new" ${newStation ? "selected" : ""}>Nouvelle station…</option></select></div>
+      <div class="frow" id="ps-new-w" ${newStation ? "" : "hidden"}><label for="ps-new">Nom</label><input id="ps-new" placeholder="Nom de la station"></div>
       <div class="frow"><span class="l">Plein complet</span><span style="flex:1"></span><label class="switch"><input type="checkbox" id="pf" ${p && p.plein ? "checked" : ""}><span></span></label></div>
-    </div><datalist id="stations">${stations.map(s => `<option value="${esc(s)}">`).join("")}</datalist>
+    </div>
     ${fuelBlock(0, fuels[0])}<div id="slot2">${fuels[1] ? fuelBlock(1, fuels[1]) : ADD2}</div>
     <div class="live" id="plive"></div>
   </form>${formFoot(!!p)}`, () => {
     let warned = false;       // les avertissements ont déjà été montrés : le prochain appui enregistre
+    let guessKept = !!guess;  // le compteur proposé n'a pas encore été modifié
+
+    // compteur proposé : au toucher, sélectionne les 3 derniers chiffres ; à la première saisie, repasse en noir
+    const pk = $("#pk");
+    pk.addEventListener("focus", () => { if (guessKept) setTimeout(() => pk.setSelectionRange(pk.value.length - 3, pk.value.length), 0); });
+    pk.addEventListener("input", () => { guessKept = false; pk.classList.remove("guess"); });
+    // « Nouvelle station… » affiche le champ du nom
+    $("#ps").addEventListener("change", () => {
+      const isNew = $("#ps").value === "__new";
+      $("#ps-new-w").hidden = !isNew;
+      if (isNew) $("#ps-new").focus();
+    });
 
     /** Lit le formulaire. */
     const read = () => ({
-      date: $("#pd").value, km: num($("#pk").value), station: $("#ps").value.trim(), plein: $("#pf").checked,
+      date: $("#pd").value, km: num($("#pk").value), plein: $("#pf").checked,
+      station: $("#ps").value === "__new" ? $("#ps-new").value.trim() : $("#ps").value,
       carburants: [0, 1].filter(i => $("#fl" + i)).map(i => ({ type: $("#ft" + i).value, litres: num($("#fl" + i).value), montant: num($("#fm" + i).value) }))
     });
 
@@ -880,6 +914,8 @@ function openPlein(p) {
       const errs = [], warns = [];
       if (!v.date) errs.push("Indique la date du plein.");
       if (!(v.km > 0)) errs.push("Indique le kilométrage du compteur.");
+      if (!v.station) errs.push("Indique le nom de la nouvelle station.");
+      if (guessKept && v.km === guess) warns.push(`Tu n'as pas modifié le compteur proposé (${km(guess)}). C'est bien ce qu'affiche la voiture ?`);
       v.carburants.forEach(c => {
         if (!(c.litres > 0)) errs.push(`Litres manquants pour ${c.type}.`);
         if (!(c.montant > 0)) errs.push(`Montant manquant pour ${c.type}.`);

@@ -2,7 +2,7 @@
 
 Application de suivi de voiture (pleins, entretien, coût réel au km), installable sur iPhone et utilisable hors connexion.
 
-**Version 1.0** — https://heikefr.github.io/carnet-auto/
+**Version 1.1** — https://heikefr.github.io/carnet-auto/
 
 - Aucune donnée personnelle dans ce dépôt : les données restent sur le téléphone.
 - Sauvegarde / restauration : Réglages › Sauvegarde (fichier `.json`).
